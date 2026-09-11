@@ -7,13 +7,12 @@ In MLOps, separating data ingestion and preparation into modular functions ensur
 3. Seamless integration with data versioning tools like DVC later on.
 """
 
-from typing import Tuple
 import pandas as pd
 from sklearn.datasets import load_diabetes
 from sklearn.model_selection import train_test_split
 
 
-def load_raw_data() -> Tuple[pd.DataFrame, pd.Series]:
+def load_raw_data() -> tuple[pd.DataFrame, pd.Series]:
     """Loads the raw dataset. Using scikit-learn's built-in diabetes dataset."""
     diabetes = load_diabetes(as_frame=True)
     X = diabetes.data
@@ -23,7 +22,7 @@ def load_raw_data() -> Tuple[pd.DataFrame, pd.Series]:
 
 def prepare_data(
     test_size: float = 0.2, random_state: int = 42
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """Splits raw data into train and test sets."""
     X, y = load_raw_data()
     X_train, X_test, y_train, y_test = train_test_split(

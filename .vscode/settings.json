@@ -1,4 +1,4 @@
 {
-  "python.defaultInterpreterPath": ".venv/Scripts/python.exe",
+  "python.defaultInterpreterPath": "c:\\Users\\mjram\\Downloads\\MLOps\\.venv\\Scripts\\python.exe",
   "python.terminal.activateEnvironment": true
 }

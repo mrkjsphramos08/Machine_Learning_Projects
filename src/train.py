@@ -11,7 +11,7 @@ MLOps Tracking Pattern — Core MLflow Calls Explained:
 2. mlflow.start_run(run_name=...):
    - Opens an active tracking context (a single trial/execution).
    - Automatically captures system metadata (start time, user, git commit hash).
-   - Using `with mlflow.start_run():` guarantees the run is properly marked 
+   - Using `with mlflow.start_run():` guarantees the run is properly marked
      as FINISHED or FAILED even if an error occurs.
 
 3. mlflow.log_param(key, value) / mlflow.log_params(dict):
@@ -25,19 +25,17 @@ MLOps Tracking Pattern — Core MLflow Calls Explained:
 5. mlflow.sklearn.log_model(sk_model, artifact_path):
    - Serializes and stores the actual trained model artifact along with a Conda/pip
      environment file (MLmodel specification).
-   - Enables reproducible loading later (`mlflow.sklearn.load_model(...)`) for 
+   - Enables reproducible loading later (`mlflow.sklearn.load_model(...)`) for
      serving, batch inference, or promotion to a Model Registry.
 ================================================================================
 """
 
-import sys
-from pathlib import Path
-import yaml
-import numpy as np
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import mlflow
 import mlflow.sklearn
+import numpy as np
+import yaml
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from src.data import prepare_data
 
@@ -62,7 +60,9 @@ def train_model():
 
     # 3. Start tracked execution run
     with mlflow.start_run(run_name=run_name):
-        print(f"[*] Started MLflow run: '{run_name}' under experiment '{experiment_name}'")
+        print(
+            f"[*] Started MLflow run: '{run_name}' under experiment '{experiment_name}'"
+        )
 
         # 4. Prepare data
         test_size = dataset_cfg.get("test_size", 0.2)

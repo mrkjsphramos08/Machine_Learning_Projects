@@ -20,7 +20,4 @@ def test_data_loader():
 
 def test_train_pipeline_smoke():
     """Smoke test: Ensure train_model runs end-to-end without unhandled exceptions."""
-    try:
-        train_model()
-    except Exception as e:
-        assert False, f"train_model failed with error: {e}"
+    train_model()
