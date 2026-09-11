@@ -1,0 +1,37 @@
+# Python virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# MLflow tracking store & artifacts (local runs store metrics, params, and serialized models here)
+mlruns/
+.trash/
+*.db
+
+# Data directories (keep directory structure with .gitkeep, ignore actual datasets)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Trained models and serialized artifacts (tracked via MLflow or Model Registry, not Git)
+models/*
+!models/.gitkeep
+
+# OS generated files
+Thumbs.db
+.DS_Store

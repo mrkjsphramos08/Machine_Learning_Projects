@@ -1,0 +1,16 @@
+# Core ML & Data Processing
+scikit-learn>=1.3.0
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Experiment Tracking & Model Artifacts
+mlflow>=2.10.0
+
+# Configuration & Utilities
+pyyaml>=6.0
+
+# Testing
+pytest>=7.4.0
+
+# Data Versioning (included for next stage, ready when needed)
+dvc>=3.0.0
