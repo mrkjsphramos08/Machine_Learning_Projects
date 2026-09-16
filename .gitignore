@@ -22,15 +22,21 @@ mlruns/
 .trash/
 *.db
 
-# Data directories (keep directory structure with .gitkeep, ignore actual datasets)
+# Data directories (keep directory structure and DVC metadata, ignore untracked data files)
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/.gitignore
+!data/raw/*.dvc
 data/processed/*
 !data/processed/.gitkeep
+!data/processed/.gitignore
+!data/processed/*.dvc
 
 # Trained models and serialized artifacts (tracked via MLflow or Model Registry, not Git)
 models/*
 !models/.gitkeep
+!models/.gitignore
+!models/*.dvc
 
 # OS generated files
 Thumbs.db
