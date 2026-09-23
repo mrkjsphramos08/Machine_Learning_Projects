@@ -113,7 +113,7 @@ Copy-Item -Recurse projects\_template projects\02_kaggle_<dataset>
 | **`mlruns/<experiment_name>/`** | Model artifacts, one folder per experiment. `src/train.py` pins the tracking store *and* the artifact root to the repo root — MLflow 3.x otherwise derives both from the *current directory* and scatters stray databases and artifact folders into whatever folder you ran from. |
 | **`.dvc/` cache** | Data is stored once and deduplicated, even if two projects use the same dataset. |
 | **`pytest.ini`** | `--import-mode=importlib` lets every project ship its own `tests/test_pipeline.py` without module-name clashes. |
-| **`.agents/` rules + skills** | The standards and the DVC / MLflow / FastAPI / Docker procedures apply to every project automatically. |
+| **`.agents/` rules + skills** | The standards (`rules/mlops_standards.md`) and 20 procedural skills apply to every project automatically. Index of all skills: `.agents/skills/README.md`. |
 
 `experiment_name` is the only thing that must never be duplicated between
 projects — that is what keeps the shared tracking store readable.

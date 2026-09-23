@@ -1,6 +1,6 @@
 ---
 name: docker-ml-packaging
-description: Guidelines and production templates for containerizing ML training pipelines and FastAPI serving microservices with Docker and multi-stage builds.
+description: Procedures and templates for containerizing a graduated project's serving API with Docker - multi-stage builds, monorepo build context, non-root user, health checks, and compose for a local MLflow server. Docker must be installed first (it is not installed on this machine yet).
 ---
 
 # Docker ML Packaging & Containerization Skill
@@ -26,13 +26,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
+# Install python dependencies (requirements live at the REPO ROOT)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code and configs
-COPY src/ ./src/
-COPY configs/ ./configs/
+# Copy the graduated project. The build context is the REPO ROOT, so the project
+# folder is preserved and only that project is copied into the image.
+ARG PROJECT=projects/01_diabetes_regression
+COPY ${PROJECT}/src/ ./src/
+COPY ${PROJECT}/configs/ ./configs/
 
 # Create a non-root user for security
 RUN useradd -m appuser && chown -R appuser /app
@@ -81,16 +83,54 @@ services:
 
 ## 3. Essential Docker CLI Commands
 
+**Prerequisite — verified:** `docker` is **not** installed on this machine
+(`docker --version` → `The term 'docker' is not recognized`), so this milestone is
+blocked until Docker Desktop is installed. Confirm with `docker --version` first.
+
 ```powershell
-# Build Docker image
-docker build -t mlops-serving:v1 .
+# Build from the REPO ROOT - the build context must include requirements.txt
+docker build -t mlops-service:v1 --build-arg PROJECT=projects/01_diabetes_regression .
 
-# Run container locally mapping port 8000
-docker run -p 8000:8000 --name mlops-api mlops-serving:v1
+# Run, mapping port 8000
+docker run -p 8000:8000 --name mlops-api mlops-service:v1
 
-# Test endpoint
-curl http://localhost:8000/health
+# Test the endpoint (PowerShell, not curl - curl.exe aliases differ on Windows)
+Invoke-RestMethod -Uri "http://localhost:8000/health" -Method Get
 
-# Stop and clean up container
-docker stop mlops-api && docker rm mlops-api
+# Inspect a failing container - the fastest way to see a lifespan/loading error
+docker logs mlops-api
+
+# Stop and clean up
+docker stop mlops-api; docker rm mlops-api
 ```
+
+### The model-inside-the-container problem
+
+`models:/<name>@champion` cannot resolve inside a container that has no tracking
+store or registry. Choose deliberately:
+
+| Approach | Trade-off |
+| :--- | :--- |
+| Mount the store: `-v ${PWD}/mlflow.db:/app/mlflow.db -v ${PWD}/mlruns:/app/mlruns` | simplest locally; image is not self-contained |
+| Point at an MLflow server: `-e MLFLOW_TRACKING_URI=http://mlflow:5000` | realistic production shape (see the compose file in §2) |
+| Bake the model into the image at build time via `mlflow.artifacts.download_artifacts` | self-contained, but now promotions require an image rebuild |
+
+Only bake the model in if you accept rebuilding on every promotion.
+
+### `.dockerignore` (keeps the build context small)
+
+```
+.venv/
+.git/
+.dvc/cache/
+mlruns/
+mlflow.db
+.pytest_cache/
+**/__pycache__/
+projects/*/data/
+projects/*/notebooks/
+*.md
+```
+
+Without this, `docker build .` sends the entire virtualenv (hundreds of MB) to the
+daemon on every build.

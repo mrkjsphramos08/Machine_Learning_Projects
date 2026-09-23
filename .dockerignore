@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------------------
+# Keeps the Docker build context small.
+# The build context is the REPO ROOT (see .agents/skills/docker-ml-packaging),
+# so everything below would otherwise be uploaded to the daemon on every build.
+# ---------------------------------------------------------------------------
+
+# Virtualenv - hundreds of MB, never needed in an image
+.venv/
+venv/
+
+# Version control and DVC internals (data is fetched at runtime, not baked in)
+.git/
+.dvc/cache/
+.dvc/tmp/
+
+# Tracking store and artifacts (mounted or served at runtime instead)
+mlruns/
+mlflow.db
+*.db
+
+# Test and Python caches
+.pytest_cache/
+**/__pycache__/
+*.py[cod]
+
+# Project data and analysis - not required to serve a model
+projects/*/data/
+projects/*/notebooks/
+
+# Documentation
+*.md
