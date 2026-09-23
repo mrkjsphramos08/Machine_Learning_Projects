@@ -70,7 +70,9 @@ def test_predictions_are_deterministic(synthetic_project):
     prepare_and_save_data(config_path=synthetic_project)
     train_model(config_path=synthetic_project)
     cfg = load_config(synthetic_project)
-    X_train, X_test, y_train, y_test = load_processed_data(config_path=synthetic_project)
+    X_train, X_test, y_train, y_test = load_processed_data(
+        config_path=synthetic_project
+    )
 
     first = joblib.load(cfg["paths"]["model"]).predict(X_test)
     second = joblib.load(cfg["paths"]["model"]).predict(X_test)

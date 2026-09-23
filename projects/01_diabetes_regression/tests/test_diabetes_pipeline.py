@@ -16,7 +16,6 @@ from pathlib import Path
 import pandas as pd
 import pytest
 import yaml
-
 from src.data import load_config, load_processed_data, prepare_and_save_data
 from src.train import build_model, configure_tracking, evaluate_model, train_model
 
@@ -51,13 +50,23 @@ def synthetic_project(tmp_path: Path) -> Path:
         },
         "paths": {
             "raw_data": (raw_dir / "data.csv").as_posix(),
-            "train_data": (tmp_path / "data" / "processed" / "train.parquet").as_posix(),
+            "train_data": (
+                tmp_path / "data" / "processed" / "train.parquet"
+            ).as_posix(),
             "test_data": (tmp_path / "data" / "processed" / "test.parquet").as_posix(),
             "model": (tmp_path / "models" / "model.pkl").as_posix(),
         },
-        "dataset": {"target_column": TARGET, "test_size": TEST_SIZE, "random_state": 42},
-        "model": {"type": "RandomForestRegressor", "n_estimators": 5, "max_depth": 3,
-                  "random_state": 42},
+        "dataset": {
+            "target_column": TARGET,
+            "test_size": TEST_SIZE,
+            "random_state": 42,
+        },
+        "model": {
+            "type": "RandomForestRegressor",
+            "n_estimators": 5,
+            "max_depth": 3,
+            "random_state": 42,
+        },
     }
 
     config_path = tmp_path / "config.yaml"
@@ -89,7 +98,9 @@ def test_prepare_and_save_data_writes_expected_rows(synthetic_project: Path):
 def test_processed_data_validation(synthetic_project: Path):
     """Data validation: expected columns, no null targets, numeric features."""
     prepare_and_save_data(config_path=synthetic_project)
-    X_train, X_test, y_train, y_test = load_processed_data(config_path=synthetic_project)
+    X_train, X_test, y_train, y_test = load_processed_data(
+        config_path=synthetic_project
+    )
 
     assert list(X_train.columns) == FEATURES
     assert list(X_test.columns) == FEATURES
@@ -108,7 +119,9 @@ def test_configure_tracking_honours_config(synthetic_project: Path):
 def test_evaluate_model_returns_standard_metrics(synthetic_project: Path):
     """Metric keys must stay stable so MLflow history remains comparable."""
     prepare_and_save_data(config_path=synthetic_project)
-    X_train, X_test, y_train, y_test = load_processed_data(config_path=synthetic_project)
+    X_train, X_test, y_train, y_test = load_processed_data(
+        config_path=synthetic_project
+    )
 
     model = build_model(load_config(synthetic_project)["model"])
     model.fit(X_train, y_train)

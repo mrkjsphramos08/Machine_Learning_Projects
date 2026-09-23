@@ -42,7 +42,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from src.data import load_config, load_processed_data
-from src.paths import REPO_ROOT, ensure_parent, resolve
+from src.paths import PROJECT_ROOT, REPO_ROOT, ensure_parent, resolve
 
 DEFAULT_CONFIG_PATH = "configs/config.yaml"
 
@@ -158,7 +158,8 @@ def train_model(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, floa
             {
                 k: v
                 for k, v in model_cfg.items()
-                if k not in {"type", "random_state"} and isinstance(v, (int, float, str))
+                if k not in {"type", "random_state"}
+                and isinstance(v, (int, float, str))
             }
         )
         mlflow.log_params(flat_params)
@@ -172,7 +173,9 @@ def train_model(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, floa
         model_path = ensure_parent(resolve(paths_cfg.get("model", "models/model.pkl")))
         joblib.dump(model, model_path)
 
-        mlflow.sklearn.log_model(sk_model=model, name="model", registered_model_name=None)
+        mlflow.sklearn.log_model(
+            sk_model=model, name="model", registered_model_name=None
+        )
 
         print("[+] Training completed successfully!")
         print(f"    RMSE: {metrics['rmse']:.4f}")

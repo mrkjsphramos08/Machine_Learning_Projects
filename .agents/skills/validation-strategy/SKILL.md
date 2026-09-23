@@ -51,6 +51,7 @@ train_df, test_df = train_test_split(
 
 ```python
 from sklearn.model_selection import StratifiedKFold
+
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 ```
 
@@ -58,6 +59,7 @@ cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 ```python
 from sklearn.model_selection import GroupKFold
+
 cv = GroupKFold(n_splits=5)
 scores = cross_validate(model, X, y, cv=cv, groups=df["patient_id"], scoring="r2")
 ```
@@ -66,7 +68,8 @@ scores = cross_validate(model, X, y, cv=cv, groups=df["patient_id"], scoring="r2
 
 ```python
 from sklearn.model_selection import TimeSeriesSplit
-cv = TimeSeriesSplit(n_splits=5, gap=1)   # gap prevents boundary leakage
+
+cv = TimeSeriesSplit(n_splits=5, gap=1)  # gap prevents boundary leakage
 ```
 
 **Tiny data** — repeated KFold with several seeds, report mean ± std, and do not

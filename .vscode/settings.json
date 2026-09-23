@@ -1,4 +1,34 @@
 {
   "python.defaultInterpreterPath": "c:\\Users\\mjram\\Downloads\\MLOps\\.venv\\Scripts\\python.exe",
-  "python.terminal.activateEnvironment": true
+  "python.terminal.activateEnvironment": true,
+
+  // --- Testing -------------------------------------------------------------
+  // pytest.ini at the repo root defines the import mode; run the whole suite
+  // with `pytest` from the root, or one project's suite from its own folder.
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [],
+
+  // --- Formatting / linting (Ruff extension) -------------------------------
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+
+  // --- Explorer / search noise --------------------------------------------
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ipynb_checkpoints": true
+  },
+  "search.exclude": {
+    "**/mlruns": true,
+    "**/.dvc/cache": true,
+    "**/mlflow.db": true
+  },
+  "notebook.output.textLineLimit": 30
 }
+

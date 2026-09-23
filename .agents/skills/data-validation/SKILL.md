@@ -45,7 +45,9 @@ def validate_raw_data(df: pd.DataFrame, target_column: str) -> None:
         raise ValueError(f"target '{target_column}' contains null values")
 
     if not pd.api.types.is_numeric_dtype(df[target_column]):
-        raise TypeError(f"target '{target_column}' must be numeric, got {df[target_column].dtype}")
+        raise TypeError(
+            f"target '{target_column}' must be numeric, got {df[target_column].dtype}"
+        )
 
     if df[target_column].nunique() < 2:
         raise ValueError("target has a single distinct value - nothing to learn")
@@ -56,9 +58,11 @@ And the same expectations as *tests* in `tests/test_<name>_pipeline.py`:
 ```python
 def test_raw_data_contract(synthetic_project):
     prepare_and_save_data(config_path=synthetic_project)
-    X_train, X_test, y_train, y_test = load_processed_data(config_path=synthetic_project)
+    X_train, X_test, y_train, y_test = load_processed_data(
+        config_path=synthetic_project
+    )
 
-    assert list(X_train.columns) == FEATURES          # exact column list and order
+    assert list(X_train.columns) == FEATURES  # exact column list and order
     assert len(X_train) > 0 and len(X_test) > 0
     assert not y_train.isna().any()
     assert y_train.nunique() > 1
@@ -86,11 +90,13 @@ raw_schema = DataFrameSchema(
         "bmi": Column(float, Check.gt(0), nullable=True),
         "target": Column(float, Check.between(0, 1000), nullable=False),
     },
-    strict=False,      # True = extra columns are an error
-    coerce=True,       # attempt dtype coercion
+    strict=False,  # True = extra columns are an error
+    coerce=True,  # attempt dtype coercion
 )
 
-raw_schema.validate(df, lazy=True)   # lazy=True collects ALL violations, not just the first
+raw_schema.validate(
+    df, lazy=True
+)  # lazy=True collects ALL violations, not just the first
 ```
 
 Notes:

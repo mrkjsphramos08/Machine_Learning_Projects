@@ -1,0 +1,31 @@
+# =============================================================================
+# Ruff configuration - linter + formatter for the whole repo.
+#
+#   .\.venv\Scripts\python.exe -m ruff check .              # lint
+#   .\.venv\Scripts\python.exe -m ruff check --fix .        # lint and autofix
+#   .\.venv\Scripts\python.exe -m ruff format --check .     # format check (CI)
+#   .\.venv\Scripts\python.exe -m ruff format .             # format
+#
+# Ruff replaces flake8 + black + isort and runs in milliseconds, which is why it
+# is the only lint tool in this repo.
+# =============================================================================
+line-length = 88
+target-version = "py311"
+
+[lint]
+# E pycodestyle errors, F pyflakes, I import sorting, UP pyupgrade,
+# B flake8-bugbear, SIM flake8-simplify
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = [
+    "E501",   # line length is the formatter's job, not the linter's
+]
+
+[lint.per-file-ignores]
+# Notebooks often import after a setup cell; E402 is expected there.
+"**/notebooks/**" = ["E402"]
+
+[format]
+# Matches the existing source style (Black-compatible defaults).
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"

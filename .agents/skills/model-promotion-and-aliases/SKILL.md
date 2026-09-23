@@ -23,10 +23,13 @@ Use **aliases** instead — verified working, including loading by alias URI:
 from mlflow.tracking import MlflowClient
 
 client = MlflowClient()
-client.set_registered_model_alias(name="diabetes_regression", alias="champion", version=3)
+client.set_registered_model_alias(
+    name="diabetes_regression", alias="champion", version=3
+)
 
 import mlflow.sklearn
-model = mlflow.sklearn.load_model("models:/diabetes_regression@champion")   # works
+
+model = mlflow.sklearn.load_model("models:/diabetes_regression@champion")  # works
 ```
 
 Suggested alias vocabulary:
@@ -73,7 +76,9 @@ python -m src.train            # e.g. run_name: challenger_rf_v2
 ```
 
 ```python
-client.set_registered_model_alias(name="diabetes_regression", alias="challenger", version=3)
+client.set_registered_model_alias(
+    name="diabetes_regression", alias="challenger", version=3
+)
 ```
 
 Then evaluate **both versions on the identical holdout** — never compare a new
@@ -94,7 +99,12 @@ Promote only when every gate in §2 passes:
 
 ```python
 version = client.get_model_version_by_alias("diabetes_regression", "challenger").version
-client.set_model_version_tag("diabetes_regression", version, "promoted_reason", "rmse 51.2 -> 48.9 on frozen holdout")
+client.set_model_version_tag(
+    "diabetes_regression",
+    version,
+    "promoted_reason",
+    "rmse 51.2 -> 48.9 on frozen holdout",
+)
 client.set_registered_model_alias("diabetes_regression", "champion", version)
 client.delete_registered_model_alias("diabetes_regression", "challenger")
 ```
@@ -125,7 +135,7 @@ into a validation error, and it documents the exact expected columns.
 ## 5. Rollback
 
 ```python
-previous = 2                                    # the version you replaced
+previous = 2  # the version you replaced
 client.set_registered_model_alias("diabetes_regression", "champion", previous)
 ```
 

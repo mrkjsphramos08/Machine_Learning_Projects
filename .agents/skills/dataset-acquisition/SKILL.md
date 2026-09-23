@@ -48,6 +48,7 @@ kaggle datasets download -d uciml/iris -p data/raw --unzip
 ```python
 # One-off download, then save it into the project so DVC can track a stable file
 import pandas as pd
+
 df = pd.read_csv("https://example.com/data.csv")
 df.to_csv("data/raw/data.csv", index=False)
 ```
@@ -56,6 +57,7 @@ Built-ins (fastest way to make progress when the real dataset is not ready):
 
 ```python
 from sklearn.datasets import load_diabetes, fetch_california_housing
+
 X, y = fetch_california_housing(as_frame=True, return_X_y=True)
 ```
 

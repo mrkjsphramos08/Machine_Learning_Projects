@@ -44,12 +44,18 @@ Using Pydantic ensures invalid requests (missing fields, wrong types) are reject
 from pydantic import BaseModel, Field
 from typing import List
 
+
 class ModelInput(BaseModel):
-    features: List[float] = Field(..., description="List of feature values in expected order")
+    features: List[float] = Field(
+        ..., description="List of feature values in expected order"
+    )
+
 
 class PredictionResponse(BaseModel):
     prediction: float
-    model_uri: str = Field(..., description="Registry URI that produced this prediction")
+    model_uri: str = Field(
+        ..., description="Registry URI that produced this prediction"
+    )
     # Echoing the model URI makes a wrong-alias incident visible in the response.
 ```
 
@@ -92,7 +98,7 @@ async def lifespan(app: FastAPI):
     try:
         app.state.model = mlflow.pyfunc.load_model(MODEL_URI)
         print(f"[+] Loaded {MODEL_URI}")
-    except Exception as exc:                 # stay up, report unhealthy instead
+    except Exception as exc:  # stay up, report unhealthy instead
         app.state.model = None
         print(f"[!] Could not load {MODEL_URI}: {exc}")
     yield
@@ -176,7 +182,7 @@ def test_predict_rejects_bad_payload():
     with TestClient(app) as client:
         response = client.post("/predict", json={"features": "not-a-list"})
 
-    assert response.status_code == 422      # Pydantic validation, not a 500
+    assert response.status_code == 422  # Pydantic validation, not a 500
 ```
 
 Also test the **503 path**: when the model failed to load, the API must say so

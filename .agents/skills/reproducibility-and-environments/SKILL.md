@@ -82,11 +82,13 @@ that has not been every run in this repo. Assert it explicitly:
 import subprocess
 import mlflow
 
+
 def git_commit() -> str:
     try:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     except Exception:
         return "unknown"
+
 
 with mlflow.start_run(run_name=run_name):
     mlflow.set_tag("git_commit", git_commit())

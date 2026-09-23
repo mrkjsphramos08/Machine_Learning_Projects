@@ -27,7 +27,7 @@ def load_config(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict:
     path = Path(config_path)
     if not path.is_absolute():
         path = PROJECT_ROOT / path
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

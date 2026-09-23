@@ -39,13 +39,14 @@ nonsense rather than an error.
 ```python
 import pandas as pd
 
+
 def load_scoring_input(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
     required = ["age", "sex", "bmi", "bp", "s1", "s2", "s3", "s4", "s5", "s6"]
     missing = set(required) - set(df.columns)
     if missing:
         raise ValueError(f"scoring input is missing columns: {sorted(missing)}")
-    return df[required]          # exact column order the model was trained on
+    return df[required]  # exact column order the model was trained on
 ```
 
 Column **order** matters for some estimators and for positional signature checks;
@@ -58,6 +59,7 @@ full schema treatment.
 
 ```python
 import datetime as dt
+
 
 def score(input_path: str, output_path: str, model_uri: str) -> None:
     df = load_scoring_input(input_path)
@@ -95,7 +97,10 @@ resolved version next to the output:
 
 ```python
 from mlflow.tracking import MlflowClient
-version = MlflowClient().get_model_version_by_alias("diabetes_regression", "champion").version
+
+version = (
+    MlflowClient().get_model_version_by_alias("diabetes_regression", "champion").version
+)
 (result_dir / "model_version.json").write_text(f'{{"version": {version}}}')
 ```
 

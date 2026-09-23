@@ -27,7 +27,7 @@ irrelevant dimensions. Sample instead:
 from scipy.stats import loguniform, randint
 from sklearn.model_selection import KFold, RandomizedSearchCV
 
-cv = KFold(n_splits=5, shuffle=True, random_state=42)     # match your protocol
+cv = KFold(n_splits=5, shuffle=True, random_state=42)  # match your protocol
 
 param_dist = {
     "est__n_estimators": randint(100, 800),
@@ -37,9 +37,9 @@ param_dist = {
 }
 
 search = RandomizedSearchCV(
-    pipeline,                       # the full Pipeline, including preprocessing
+    pipeline,  # the full Pipeline, including preprocessing
     param_dist,
-    n_iter=40,                      # ~40-60 is plenty for a first pass
+    n_iter=40,  # ~40-60 is plenty for a first pass
     cv=cv,
     scoring="neg_root_mean_squared_error",
     random_state=42,
@@ -48,7 +48,7 @@ search = RandomizedSearchCV(
 )
 search.fit(X_train, y_train)
 print(-search.best_score_, search.best_params_)
-best_pipeline = search.best_estimator_        # already refit on all of X_train
+best_pipeline = search.best_estimator_  # already refit on all of X_train
 ```
 
 The `est__` prefix addresses the pipeline step named `est` — the same naming used
@@ -82,17 +82,24 @@ pip install optuna
 ```python
 import optuna
 
+
 def objective(trial):
     params = {
         "n_estimators": trial.suggest_int("n_estimators", 100, 800),
         "max_depth": trial.suggest_int("max_depth", 3, 20),
         "min_samples_leaf": trial.suggest_int("min_samples_leaf", 1, 20),
     }
-    scores = cross_validate(make_pipeline(params), X_train, y_train, cv=cv,
-                            scoring="neg_root_mean_squared_error")
+    scores = cross_validate(
+        make_pipeline(params),
+        X_train,
+        y_train,
+        cv=cv,
+        scoring="neg_root_mean_squared_error",
+    )
     return scores["test_score"].mean()
 
-study = optuna.create_study(direction="maximize")   # maximise neg-RMSE
+
+study = optuna.create_study(direction="maximize")  # maximise neg-RMSE
 study.optimize(objective, n_trials=50, show_progress_bar=True)
 print(study.best_value, study.best_params)
 ```

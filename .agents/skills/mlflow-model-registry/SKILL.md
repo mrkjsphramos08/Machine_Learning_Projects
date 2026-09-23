@@ -24,7 +24,7 @@ with mlflow.start_run(run_name="rf_experiment_v1"):
     mlflow.sklearn.log_model(
         sk_model=model,
         name="model",
-        registered_model_name="<project_model_name>",   # e.g. "diabetes_regression"
+        registered_model_name="<project_model_name>",  # e.g. "diabetes_regression"
     )
 ```
 
@@ -66,7 +66,9 @@ Alias vocabulary used in this repo: `champion` (serving), `challenger`
 **Rollback is one call** — this is the main reason to prefer aliases:
 
 ```python
-client.set_registered_model_alias(name="diabetes_regression", alias="champion", version=1)
+client.set_registered_model_alias(
+    name="diabetes_regression", alias="champion", version=1
+)
 ```
 
 For the full promotion policy and the evaluation procedure, see the
@@ -87,11 +89,15 @@ model_uri = "models:/<project_model_name>@champion"
 production_model = mlflow.pyfunc.load_model(model_uri)
 
 # Run inference
-sample_input = pd.DataFrame([{
-    "feature_1": 0.038,
-    "feature_2": 0.050,
-    # ...
-}])
+sample_input = pd.DataFrame(
+    [
+        {
+            "feature_1": 0.038,
+            "feature_2": 0.050,
+            # ...
+        }
+    ]
+)
 predictions = production_model.predict(sample_input)
 print(f"Prediction: {predictions}")
 ```
@@ -134,8 +140,8 @@ your runs when it is started from the repo root — see §5.
 One project's `train.py` therefore looks like:
 
 ```python
-tracking_uri = configure_tracking(config)      # repo-level mlflow.db
-ensure_experiment(experiment_name, config)     # mlruns/<experiment_name>/
+tracking_uri = configure_tracking(config)  # repo-level mlflow.db
+ensure_experiment(experiment_name, config)  # mlruns/<experiment_name>/
 with mlflow.start_run(run_name=run_name):
     ...
 ```

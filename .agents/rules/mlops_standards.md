@@ -2,6 +2,8 @@
 
 These rules define the engineering standards for developing and deploying machine learning pipelines in this repository.
 
+**Rules vs skills.** This file states the non-negotiables. The step-by-step *how* lives in `.agents/skills/` — see the index at `.agents/skills/README.md` for which skill to use at each stage of the ML workflow.
+
 ---
 
 ## 0. Repository Layout (monorepo — two tiers)
@@ -54,6 +56,9 @@ Rules that follow from this:
 
 - **Never Commit Heavy Binaries**: Never commit raw dataset files (`.csv`, `.parquet`, `.json`), serialized model weights (`.pkl`, `.onnx`), or the local `mlruns/` folder to Git.
 - **DVC Tracking**: Use DVC (`dvc add <data_file>` or `dvc.yaml` pipeline stages) to track and version dataset snapshots alongside Git commit hashes.
+- **Provenance is mandatory**: every project's `data/raw/DATASET.md` records the source URL, retrieval date, licence and sha256 of the file. Without it the dataset cannot be audited or re-fetched.
+- **Commit `dvc.lock` with the code**: the lock file ties a specific data hash to a specific code and config revision. Changing data or config without committing the lock file breaks the chain.
+- **Configure a DVC remote** for any data you could not re-download by hand: the local `.dvc/cache` is a single point of failure. `dvc remote list` must not be empty once a project matters.
 
 ---
 
@@ -62,3 +67,28 @@ Rules that follow from this:
 - **Automated Smoke Tests**: Every pipeline component must have a corresponding test in `tests/` to verify it runs end-to-end without crashing.
 - **Data Validation Tests**: Include unit tests that verify expected column names, non-empty dataframes, and data types before feeding data into models.
 - **Hermetic Tests**: Tests must not depend on downloaded data or on pipeline outputs. Build a tiny synthetic dataset in `tmp_path`, write a temporary config that points at it, and aim `mlflow.tracking_uri` at a temporary SQLite file so the shared `mlflow.db` stays clean.
+- **Never assert a metric value**: asserting an exact RMSE/accuracy makes a test that breaks on every dependency bump. Assert invariants (determinism, output shape, output range) or a threshold relative to the baseline.
+- **Keep the default suite fast**: mark anything slow with `@pytest.mark.slow` (registered in `pytest.ini`) and keep the unmarked suite under about 30 seconds.
+
+---
+
+## 5. Model Lifecycle & Release
+
+- **Aliases, not stages**: `transition_model_version_stage` is deprecated (since MLflow 2.9). Promote with `set_registered_model_alias` and serve `models:/<name>@champion`. Never serve `@latest` — that is an untested version.
+- **One registered model name per project**, read from `configs/config.yaml` (`model.registered_name`), so versions do not collide across projects in the shared registry.
+- **Write the promotion gate before evaluating**: primary metric, the margin required (must exceed fold-to-fold std), the worst-slice limit, and the exact holdout used. A gate invented after seeing the numbers is not a gate.
+- **Champion and challenger are scored on the identical frozen holdout** — never compare a new metric against an old one measured on different rows.
+- **Log a signature and an input example** with every registered model (`infer_signature`, `input_example`) so serving can validate payloads instead of silently accepting nonsense.
+- **A rollback target must exist**: keep the previous champion registered. Rollback is an alias move, not a retrain.
+- **Batch scoring before real-time serving**: do not build an API for a model nobody consumes yet. Offline scoring is the cheaper path to real value.
+
+---
+
+## 6. Reproducibility & Operations
+
+- **Log the git commit explicitly**: tag runs with `git_commit` (and note the data version via `dvc.lock`). MLflow does not reliably capture `mlflow.source.git.commit` for every run.
+- **Two runs, identical metrics**: before trusting a result, confirm that re-running with the same seed reproduces it. If it does not, that is a bug, not noise.
+- **Docker and FastAPI are graduation artifacts**, not project scaffolding: only one project at a time gets them (`projects/01_diabetes_regression/ROADMAP.md`). Adding them to every experiment is how ML work turns into YAML work.
+- **Monitoring thresholds must have an owner**: every drift or performance alert names who looks and what they do. An unowned alert is noise.
+- **The batch scoring job is the cheapest monitoring surface**: log row counts, prediction distributions and null rates on every scoring run.
+- **Skills are the procedures** — when you need the how, read `.agents/skills/README.md` rather than improvising.

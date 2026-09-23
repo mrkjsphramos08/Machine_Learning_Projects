@@ -1,0 +1,28 @@
+{
+  // Recommended VS Code extensions for this repo.
+  // VS Code offers these when the folder is opened; install with the prompt or
+  // `code --install-extension <id>`.
+  "recommendations": [
+    // Python core (interpreter, debugging, test runner)
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+
+    // Ruff: linter + formatter, replaces flake8/black/isort. Configured by ruff.toml
+    "charliermarsh.ruff",
+
+    // Notebooks for EDA (already installed, listed so a fresh machine matches)
+    "ms-toolsai.jupyter",
+    "ms-toolsai.datawrangler",
+
+    // YAML: schema validation and completion for configs/config.yaml, dvc.yaml,
+    // .dvc files and any GitHub Actions workflow
+    "redhat.vscode-yaml",
+
+    // Inspect mlflow.db (SQLite) directly: params, metrics, tags, model versions
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-sqlite",
+
+    // Container tooling for the graduation milestone (needs Docker Desktop)
+    "ms-azuretools.vscode-docker"
+  ]
+}

@@ -27,12 +27,35 @@ impute, what the split must be, and which metric matters.
 
 ---
 
-## 1. First pass (~15 lines)
+## 1. First pass
+
+Notebooks sit in `notebooks/`, so never assume the working directory is the project
+root. Find the project by looking for `configs/config.yaml`, then reuse the same
+path helper the pipeline uses:
 
 ```python
+import sys
+from pathlib import Path
+
 import pandas as pd
 
-df = pd.read_csv("data/raw/train.csv")     # relative to the PROJECT folder
+
+def project_root() -> Path:
+    for parent in [Path.cwd(), *Path.cwd().parents]:
+        if (parent / "configs" / "config.yaml").exists():
+            return parent
+    raise RuntimeError("run this notebook from inside a project folder")
+
+
+ROOT = project_root()
+sys.path.insert(0, str(ROOT))
+
+from src.paths import resolve  # noqa: E402  (import after sys.path setup)
+
+df = pd.read_csv(resolve("data/raw/train.csv"))
+```
+
+Then the profiling pass:
 df.shape
 df.head()
 df.dtypes
@@ -62,7 +85,7 @@ value, and outliers that will dominate RMSE.
 
 **Classification target**
 ```python
-df[y].value_counts(normalize=True)     # class balance - decides your metric
+df[y].value_counts(normalize=True)  # class balance - decides your metric
 ```
 Look for: imbalance (decides accuracy vs F1/PR-AUC), tiny minority classes,
 and label noise. A 95/5 split means accuracy is worthless — see
@@ -92,10 +115,10 @@ Run these explicitly, and cross-reference the trap table in the
 `dataset-acquisition` skill:
 
 ```python
-df.duplicated(subset=[id_col]).sum()          # duplicate entities
-df.groupby(id_col).size().describe()          # repeated measures -> GroupKFold
-df[date_col].is_monotonic_increasing          # time ordering -> TimeSeriesSplit
-for col in cat_cols:                          # suspiciously perfect predictors
+df.duplicated(subset=[id_col]).sum()  # duplicate entities
+df.groupby(id_col).size().describe()  # repeated measures -> GroupKFold
+df[date_col].is_monotonic_increasing  # time ordering -> TimeSeriesSplit
+for col in cat_cols:  # suspiciously perfect predictors
     print(col, df.groupby(col)[y].mean().round(3).to_dict())
 ```
 

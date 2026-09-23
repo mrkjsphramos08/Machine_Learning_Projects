@@ -16,8 +16,8 @@ difference between two candidates is real or noise.
 ```python
 from sklearn.dummy import DummyClassifier, DummyRegressor
 
-DummyRegressor(strategy="mean")             # regression: predicts the mean
-DummyClassifier(strategy="most_frequent")   # classification: majority class
+DummyRegressor(strategy="mean")  # regression: predicts the mean
+DummyClassifier(strategy="most_frequent")  # classification: majority class
 ```
 
 Log it to MLflow exactly like a real model (`model_type="DummyRegressor"`). It is
@@ -49,7 +49,10 @@ from sklearn.model_selection import KFold, cross_validate
 
 cv = KFold(n_splits=5, shuffle=True, random_state=42)
 scores = cross_validate(
-    pipeline, X_train, y_train, cv=cv,
+    pipeline,
+    X_train,
+    y_train,
+    cv=cv,
     scoring={"rmse": "neg_root_mean_squared_error", "r2": "r2"},
     return_train_score=True,
 )

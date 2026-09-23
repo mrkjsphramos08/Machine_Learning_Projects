@@ -26,13 +26,15 @@ import pandas as pd
 from sklearn.inspection import permutation_importance
 
 result = permutation_importance(
-    model, X_test, y_test,
-    n_repeats=10, random_state=42,
+    model,
+    X_test,
+    y_test,
+    n_repeats=10,
+    random_state=42,
     scoring="neg_root_mean_squared_error",
 )
-importance = (
-    pd.Series(result.importances_mean, index=X_test.columns)
-    .sort_values(ascending=False)
+importance = pd.Series(result.importances_mean, index=X_test.columns).sort_values(
+    ascending=False
 )
 print(importance.head(15))
 ```
@@ -56,7 +58,9 @@ high-cardinality features — use it for a quick look only.
 ```python
 from sklearn.inspection import PartialDependenceDisplay
 
-PartialDependenceDisplay.from_estimator(model, X_test, ["bmi", "s5"], grid_resolution=50)
+PartialDependenceDisplay.from_estimator(
+    model, X_test, ["bmi", "s5"], grid_resolution=50
+)
 ```
 
 Shows the marginal effect of a feature. Unreliable when features are strongly
@@ -73,9 +77,11 @@ err = pd.DataFrame({"y_true": y_test, "y_pred": model.predict(X_test)})
 err["residual"] = err["y_true"] - err["y_pred"]
 
 import matplotlib.pyplot as plt
+
 plt.scatter(err["y_pred"], err["residual"], s=8, alpha=0.6)
 plt.axhline(0, color="red", linewidth=1)
-plt.xlabel("prediction"); plt.ylabel("residual")
+plt.xlabel("prediction")
+plt.ylabel("residual")
 plt.show()
 ```
 
@@ -101,7 +107,7 @@ slices = err.assign(**{"bucket": err["y_pred"].round(-1)})
 slices.groupby("bucket").agg(
     n=("residual", "size"),
     mean_resid=("residual", "mean"),
-    rmse=("residual", lambda r: float(np.sqrt((r ** 2).mean()))),
+    rmse=("residual", lambda r: float(np.sqrt((r**2).mean()))),
 )
 ```
 
@@ -123,10 +129,10 @@ pip install shap
 ```python
 import shap
 
-explainer = shap.TreeExplainer(model.named_steps["est"])   # tree models
+explainer = shap.TreeExplainer(model.named_steps["est"])  # tree models
 sample = X_test.sample(min(500, len(X_test)), random_state=42)
-explanation = explainer(sample)                             # shap >= 0.45
-explanation.summary_plot()                                  # not available in all versions
+explanation = explainer(sample)  # shap >= 0.45
+explanation.summary_plot()  # not available in all versions
 ```
 
 Notes so you are not surprised:

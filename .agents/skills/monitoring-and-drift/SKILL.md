@@ -47,7 +47,9 @@ import numpy as np
 import pandas as pd
 
 
-def population_stability_index(reference: pd.Series, current: pd.Series, bins: int = 10) -> float:
+def population_stability_index(
+    reference: pd.Series, current: pd.Series, bins: int = 10
+) -> float:
     """PSI between a reference sample and a current sample.
 
     < 0.10 stable | 0.10-0.25 moderate shift | > 0.25 major shift
@@ -55,8 +57,12 @@ def population_stability_index(reference: pd.Series, current: pd.Series, bins: i
     edges = np.unique(np.quantile(reference.dropna(), np.linspace(0, 1, bins + 1)))
     if len(edges) < 3:
         return 0.0  # constant reference: PSI is undefined
-    ref_share = pd.cut(reference, bins=edges, include_lowest=True).value_counts(normalize=True)
-    cur_share = pd.cut(current, bins=edges, include_lowest=True).value_counts(normalize=True)
+    ref_share = pd.cut(reference, bins=edges, include_lowest=True).value_counts(
+        normalize=True
+    )
+    cur_share = pd.cut(current, bins=edges, include_lowest=True).value_counts(
+        normalize=True
+    )
     ref_share, cur_share = ref_share.align(cur_share, fill_value=0)
     eps = 1e-6  # avoids log(0) and divide-by-zero on empty bins
     ref_share, cur_share = ref_share + eps, cur_share + eps
@@ -101,7 +107,7 @@ Log every prediction with its timestamp and key, then join labels when they arri
 
 ```python
 predictions = pd.read_parquet("data/predictions/predictions.parquet")
-labels = pd.read_parquet("data/labels/labels.parquet")      # arrives later
+labels = pd.read_parquet("data/labels/labels.parquet")  # arrives later
 joined = predictions.merge(labels[["id", "actual"]], on="id", how="inner")
 
 metric = root_mean_squared_error(joined["actual"], joined["prediction"])

@@ -32,10 +32,13 @@ If you cannot name the decision this model supports, you cannot choose a metric.
 
 ```python
 from sklearn.metrics import (
-    mean_absolute_error, mean_squared_error, r2_score, root_mean_squared_error,
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score,
+    root_mean_squared_error,
 )
 
-rmse = root_mean_squared_error(y_test, y_pred)      # sklearn >= 1.4 (you have 1.9)
+rmse = root_mean_squared_error(y_test, y_pred)  # sklearn >= 1.4 (you have 1.9)
 mae = mean_absolute_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 ```
@@ -56,12 +59,19 @@ ranging 25–346" only means something compared to the mean-predictor.
 
 ```python
 from sklearn.metrics import (
-    accuracy_score, average_precision_score, brier_score_loss, classification_report,
-    confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score,
+    accuracy_score,
+    average_precision_score,
+    brier_score_loss,
+    classification_report,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
 )
 
 y_pred = model.predict(X_test)
-y_prob = model.predict_proba(X_test)[:, 1]     # column 1 = positive class
+y_prob = model.predict_proba(X_test)[:, 1]  # column 1 = positive class
 ```
 
 **The accuracy trap.** With 95% negatives, predicting "negative" always scores

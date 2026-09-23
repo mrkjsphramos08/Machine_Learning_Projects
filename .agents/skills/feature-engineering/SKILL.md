@@ -49,14 +49,18 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 def build_preprocessor(numeric: list[str], categorical: list[str]) -> ColumnTransformer:
-    numeric_pipe = Pipeline([
-        ("impute", SimpleImputer(strategy="median")),
-        ("scale", StandardScaler()),
-    ])
-    categorical_pipe = Pipeline([
-        ("impute", SimpleImputer(strategy="most_frequent")),
-        ("encode", OneHotEncoder(handle_unknown="ignore")),
-    ])
+    numeric_pipe = Pipeline(
+        [
+            ("impute", SimpleImputer(strategy="median")),
+            ("scale", StandardScaler()),
+        ]
+    )
+    categorical_pipe = Pipeline(
+        [
+            ("impute", SimpleImputer(strategy="most_frequent")),
+            ("encode", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
     return ColumnTransformer(
         [
             ("num", numeric_pipe, numeric),
@@ -75,10 +79,17 @@ train only; `handle_unknown="ignore"` stops unseen categories crashing inference
 ## 4. Train the pipeline as one unit
 
 ```python
-model = Pipeline([
-    ("prep", build_preprocessor(cfg["features"]["numeric"], cfg["features"]["categorical"])),
-    ("est", RandomForestClassifier(n_estimators=100, random_state=42)),
-])
+model = Pipeline(
+    [
+        (
+            "prep",
+            build_preprocessor(
+                cfg["features"]["numeric"], cfg["features"]["categorical"]
+            ),
+        ),
+        ("est", RandomForestClassifier(n_estimators=100, random_state=42)),
+    ]
+)
 model.fit(X_train, y_train)
 ```
 
@@ -119,14 +130,15 @@ with raw ones.
 ## 7. Verify it
 
 ```python
-model.named_steps                      # structure is what you think it is
-model.named_steps["prep"].get_feature_names_out()   # expanded column names
+model.named_steps  # structure is what you think it is
+model.named_steps["prep"].get_feature_names_out()  # expanded column names
 ```
 
 Round-trip test (catches pickling and version problems):
 
 ```python
 import joblib
+
 joblib.dump(model, "models/tmp.pkl")
 reloaded = joblib.load("models/tmp.pkl")
 assert (reloaded.predict(X_test[:5]) == model.predict(X_test[:5])).all()
