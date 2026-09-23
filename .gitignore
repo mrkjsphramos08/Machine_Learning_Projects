@@ -22,21 +22,29 @@ mlruns/
 .trash/
 *.db
 
-# Data directories (keep directory structure and DVC metadata, ignore untracked data files)
-data/raw/*
-!data/raw/.gitkeep
-!data/raw/.gitignore
-!data/raw/*.dvc
-data/processed/*
-!data/processed/.gitkeep
-!data/processed/.gitignore
-!data/processed/*.dvc
+# ---------------------------------------------------------------------------
+# Per-project data and artifacts (projects/*/...). Directory structure, DVC
+# pointer files and lock files stay in Git; the heavy data files do not.
+# ---------------------------------------------------------------------------
 
-# Trained models and serialized artifacts (tracked via MLflow or Model Registry, not Git)
-models/*
-!models/.gitkeep
-!models/.gitignore
-!models/*.dvc
+# Raw, immutable source data
+projects/*/data/raw/*
+!projects/*/data/raw/.gitkeep
+!projects/*/data/raw/*.dvc
+
+# Processed intermediates produced by the `prepare` pipeline stage
+projects/*/data/processed/*
+!projects/*/data/processed/.gitkeep
+!projects/*/data/processed/*.dvc
+
+# Trained models (tracked via MLflow / the Model Registry, or DVC — never Git)
+projects/*/models/*
+!projects/*/models/.gitkeep
+!projects/*/models/*.dvc
+
+# Notebook checkpoint/test output folders
+projects/*/notebooks/.ipynb_checkpoints/
+projects/*/reports/
 
 # OS generated files
 Thumbs.db

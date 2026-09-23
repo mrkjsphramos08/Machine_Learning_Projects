@@ -1,95 +1,79 @@
-# MLOps Hands-On Starter Project
+# MLOps Lab — one repo, many ML projects
 
-A minimal, production-grade starter repository designed for learning core MLOps concepts step-by-step: modular code structure, configuration management, experiment tracking, model artifact packaging, and automated smoke testing.
+A personal lab for learning MLOps by actually doing Machine Learning. One
+repository, one virtual environment, one experiment-tracking database, and a
+folder per project.
 
 ---
 
-## 📁 Repository Structure
+## 🧠 How this repo is organised
+
+There are two tiers, and keeping them separate is the whole point:
+
+| Tier | Where | What lives there |
+| :--- | :--- | :--- |
+| **The lab bench** — where you do ML | `projects/<name>/` | notebooks, data, configs, training scripts, tests. Self-contained. |
+| **The platform** — what you set up once | repo root | virtualenv, `requirements*.txt`, `mlflow.db`, `.dvc` cache, `pytest.ini`, `.agents/` rules and skills |
+
+You spend most of your time in `projects/`. The root only changes when you add a
+library or fix tooling.
 
 ```
 MLOps/
-├── .gitignore              # Ignores virtualenv, heavy data, model binaries, and mlruns/
-├── README.md               # Project guide and walkthrough
-├── requirements.txt        # Pinned core libraries (scikit-learn, MLflow, PyYAML, pytest, DVC)
-├── configs/                # Hyperparameters, paths, and pipeline configurations
-│   └── train_config.yaml   # Separates configuration from code
-├── data/                   # Data directory (tracked via .gitkeep, data files gitignored)
-│   ├── raw/                # Immutable original source data
-│   └── processed/          # Cleaned, transformed data ready for modeling
-├── models/                 # Local export directory for exported artifacts (gitignored)
-├── notebooks/              # Jupyter notebooks for exploratory data analysis (EDA)
-│   └── README.md           # Best practices for transitioning from EDA to modular code
-├── src/                    # Production-ready, modular Python package
-│   ├── __init__.py
-│   ├── data.py             # Data loading and preprocessing functions
-│   └── train.py            # Training pipeline with MLflow tracking
-└── tests/                  # Automated test suite
-    ├── __init__.py
-    └── test_train.py       # Smoke tests ensuring the pipeline runs without errors
+├── .agents/                        # rules (.agents/rules/mlops_standards.md) + skills
+├── .dvc/                           # shared DVC cache (data is stored here, not in Git)
+├── .venv/                          # ONE virtualenv shared by all projects
+├── projects/
+│   ├── _template/                  # copy this folder to start a new project
+│   │   ├── configs/config.yaml     # every tunable value lives here
+│   │   ├── src/{paths,data,train}.py
+│   │   ├── tests/test_pipeline.py  # hermetic smoke + data-validation tests
+│   │   ├── notebooks/README.md
+│   │   ├── conftest.py             # makes `import src` work under pytest
+│   │   ├── dvc.yaml                # prepare → train pipeline stages
+│   │   └── README.md               # step-by-step new-project guide
+│   └── 01_diabetes_regression/     # the reference project (+ ROADMAP.md, 4 milestones)
+├── mlflow.db                       # shared SQLite tracking store + Model Registry
+├── mlruns/                         # MLflow artifact store (gitignored)
+├── pytest.ini                      # test configuration for the whole repo
+├── requirements.txt                # shared runtime dependencies
+├── requirements-dev.txt            # notebooks, plotting, Kaggle downloads
+└── README.md
 ```
 
 ---
 
-## 🚀 Quickstart Guide
+## 🚀 Quickstart
 
-### 1. Activate the Virtual Environment
-The virtual environment `.venv` has been created using Python 3.11.
-
-In PowerShell:
 ```powershell
+# 1. Activate the shared virtualenv (Python 3.11)
 .\.venv\Scripts\Activate.ps1
-```
-*(If PowerShell restricts scripts, run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process` first, or run `.\.venv\Scripts\activate.bat` in CMD).*
+# If PowerShell blocks scripts:
+#   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 
-### 2. Install Dependencies
+# 2. Install dependencies once for the whole repo
+pip install -r requirements.txt          # to RUN pipelines
+pip install -r requirements-dev.txt      # to do EDA / download Kaggle data
+
+# 3. Work in a project
+cd projects\01_diabetes_regression
+python -m src.data       # build data/processed/*.parquet
+python -m src.train      # train, evaluate, log to MLflow, write models/model.pkl
+pytest                   # this project's tests only
+
+# 4. Explore every run in one UI (run from the REPO ROOT)
+cd ..\..
+mlflow ui --port 5000    # http://localhost:5000
+```
+
+### Reproducible pipelines with DVC
+
 ```powershell
-pip install -r requirements.txt
+dvc repro -P                                       # reproduce ALL projects' pipelines
+dvc repro projects/01_diabetes_regression/dvc.yaml # reproduce ONE project
+dvc stage list --all                                     # cached vs stale stage status
+dvc dag projects/01_diabetes_regression/dvc.yaml                                            # show the pipeline graph
 ```
 
-### 3. Run the Training Script
-```powershell
-python -m src.train
-```
-
-### 4. Run the Smoke Tests
-```powershell
-pytest
-```
-
----
-
-## 💡 The "Aha!" Moment: Experiment Tracking with MLflow
-
-### What is the `mlruns/` folder?
-When you run `python -m src.train`, you will notice a folder named `mlruns/` created automatically in your root directory.
-- **What it is**: `mlruns/` is MLflow's default local file-based database. Every time an experiment runs, MLflow creates subfolders containing YAML files with your logged parameters, timestamped metric values, and serialized model binaries.
-- **Why it's in `.gitignore`**: You should **never commit `mlruns/` to Git**. Tracking data and model binaries become very large quickly and are not source code. In production, this local folder is replaced by a remote tracking server (e.g., AWS S3 + PostgreSQL or Databricks).
-
-### Try the Comparison Workflow:
-1. **Run 1 (Baseline)**:
-   Run the training script with default settings:
-   ```powershell
-   python -m src.train
-   ```
-2. **Run 2 (Experiment)**:
-   Open `configs/train_config.yaml` and modify:
-   ```yaml
-   run_name: "experiment_deeper_trees"
-   model:
-     n_estimators: 200
-     max_depth: 12
-   ```
-   Run the script again:
-   ```powershell
-   python -m src.train
-   ```
-3. **Open the MLflow UI**:
-   Launch the web UI from your terminal:
-   ```powershell
-   mlflow ui --port 5000
-   ```
-4. **Compare**:
-   Open [http://localhost:5000](http://localhost:5000) in your browser.
-   - Click on the `wine_quality_prediction` experiment in the sidebar.
-   - Select both runs and click **Compare**.
-   - See side-by-side parameter changes, metric differences (RMSE, R2), and inspected model artifacts without having to manually record notes!
+DVC runs each project's stages with the **project folder** as the working
+directory, which is why stage commands are plain `python -m src.data`.

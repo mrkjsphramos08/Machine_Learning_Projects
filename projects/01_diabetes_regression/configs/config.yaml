@@ -1,0 +1,27 @@
+# =============================================================================
+# Project 01 — Diabetes progression regression (scikit-learn built-in dataset)
+#
+# MLflow experiment_name is unique per project so that runs stay separated
+# inside the shared repo-level mlflow.db.
+# =============================================================================
+project_name: "01_diabetes_regression"
+experiment_name: "01_diabetes_regression"
+run_name: "baseline_rf"
+
+# Paths are relative to the PROJECT folder (not the repo root, not the CWD).
+paths:
+  raw_data: "data/raw/data.csv"
+  train_data: "data/processed/train.parquet"
+  test_data: "data/processed/test.parquet"
+  model: "models/model.pkl"
+
+dataset:
+  target_column: "target"
+  test_size: 0.2
+  random_state: 42
+
+model:
+  type: "RandomForestRegressor"
+  n_estimators: 100
+  max_depth: 6
+  random_state: 42

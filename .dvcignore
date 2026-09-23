@@ -1,3 +1,8 @@
 # Add patterns of files dvc should ignore, which could improve
 # the performance. Learn more at
 # https://dvc.org/doc/user-guide/dvcignore
+
+# The project scaffold ships a dvc.yaml but has no dataset of its own, so it
+# must not be picked up by `dvc repro -P` / `dvc stage list -P`. A real project
+# copied out of it is unaffected by this rule.
+/projects/_template

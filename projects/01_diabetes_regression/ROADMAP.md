@@ -2,6 +2,13 @@
 
 **Objective:** Build a complete, production-grade Machine Learning lifecycle system from raw data ingestion to containerized REST API deployment.
 
+> **Working directory note (after the monorepo restructure).** This project now
+> lives at `projects/01_diabetes_regression/`, and every path below is relative
+> to **this folder**. Run shell commands from here unless a step says otherwise.
+> Shared services stay at the repo root: the virtualenv, `requirements*.txt`,
+> `mlflow.db`, the `.dvc` cache, and `pytest.ini`. The config file is
+> `configs/config.yaml` (it used to be `train_config.yaml`).
+
 ---
 
 ## 🏗️ Architecture & Workflow
@@ -44,7 +51,7 @@ flowchart TD
 - [ ] **Step 1.3:** Track raw data with DVC (`dvc add data/raw/data.csv`) and commit `.dvc` files to Git.
 - [ ] **Step 1.4:** Create `dvc.yaml` defining:
   - `prepare` stage: Reads `data/raw/data.csv`, outputs `data/processed/train.parquet` and `test.parquet`.
-  - `train` stage: Reads processed parquets and `configs/train_config.yaml`, outputs trained model artifact.
+  - `train` stage: Reads processed parquets and `configs/config.yaml`, outputs trained model artifact `models/model.pkl`.
 - [ ] **Step 1.5:** Run and test pipeline caching:
   ```powershell
   dvc repro
@@ -60,9 +67,10 @@ flowchart TD
   ```powershell
   mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
   ```
-- [ ] **Step 2.2:** Run experiments with different hyperparameter configurations in `configs/train_config.yaml`:
+- [ ] **Step 2.2:** Run experiments with different hyperparameter configurations in `configs/config.yaml`:
   - Run 1: Baseline Random Forest (`n_estimators=100`, `max_depth=6`)
   - Run 2: Tuned Random Forest (`n_estimators=250`, `max_depth=12`)
+  - Rename `run_name` for each attempt so the runs are distinguishable in the UI.
 - [ ] **Step 2.3:** Compare runs side-by-side in MLflow UI ([http://localhost:5000](http://localhost:5000)).
 - [ ] **Step 2.4:** Register the best-performing model into the MLflow Model Registry as `WineQualityRegressor`.
 - [ ] **Step 2.5:** Transition the model version stage to `Production`.

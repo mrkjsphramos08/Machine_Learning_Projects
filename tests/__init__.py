@@ -1,3 +1,0 @@
-"""
-Unit and smoke tests.
-"""

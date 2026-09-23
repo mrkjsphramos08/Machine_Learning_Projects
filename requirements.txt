@@ -1,9 +1,21 @@
+# =============================================================================
+# Shared runtime dependencies for the WHOLE monorepo.
+#
+# All projects share this one environment, so a project needing an extra library
+# should document it in its own README and add it here.
+# Exploration/EDA/Kaggle tooling lives in requirements-dev.txt instead.
+# =============================================================================
+
 # Core ML & Data Processing
 scikit-learn>=1.3.0
 pandas>=2.0.0
 numpy>=1.24.0
+pyarrow>=14.0.0     # Parquet engine — REQUIRED by DataFrame.to_parquet()
+joblib>=1.3.0       # Model serialization for scikit-learn estimators
 
 # Experiment Tracking & Model Artifacts
+# MLflow 3.x stores runs in SQLite; the repo-level mlflow.db is shared by every
+# project and enables the Model Registry without any extra server.
 mlflow>=2.10.0
 
 # Configuration & Utilities

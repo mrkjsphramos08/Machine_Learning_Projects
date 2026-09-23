@@ -1,0 +1,18 @@
+# =============================================================================
+# Development / exploration tooling.
+#
+# Not needed to run the pipelines — only to explore data and prototype models.
+# Install with:   pip install -r requirements-dev.txt
+# =============================================================================
+
+# Notebooks for EDA and rapid prototyping
+jupyter>=1.0.0
+ipykernel>=6.29.0
+
+# Plotting for the EDA notebooks
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# Downloading public datasets (Kaggle) directly into a project's data/raw/
+# Usage: python -c "import kagglehub; print(kagglehub.dataset_download('owner/dataset'))"
+kagglehub>=0.3.0

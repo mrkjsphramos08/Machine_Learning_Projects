@@ -1,0 +1,28 @@
+# =============================================================================
+# Project configuration template.
+# Copy this whole folder to start a new project, then edit this file.
+#
+# Rule (.agents/rules/mlops_standards.md §1): never hardcode hyperparameters,
+# dataset paths, split ratios or seeds in Python. They belong here.
+# =============================================================================
+project_name: "template"
+
+# MLflow: experiment_name must be UNIQUE per project so runs stay separated
+# inside the shared repo-level mlflow.db.
+experiment_name: "template_experiment"
+run_name: "baseline"
+
+# Paths are relative to the PROJECT folder (not the repo root, not the CWD).
+paths:
+  raw_data: "data/raw/data.csv"
+
+dataset:
+  target_column: "target"
+  test_size: 0.2
+  random_state: 42
+
+model:
+  type: "RandomForestRegressor"
+  n_estimators: 100
+  max_depth: 6
+  random_state: 42

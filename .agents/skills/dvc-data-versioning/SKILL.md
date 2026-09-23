@@ -82,11 +82,25 @@ stages:
       - models/model.pkl
 ```
 
-### Running the Pipeline:
-```powershell
-# Run the entire pipeline (stages are executed only if dependencies changed)
-dvc repro
+### Running the Pipeline (monorepo note)
 
-# Visualize the pipeline DAG (Directed Acyclic Graph)
-dvc dag
+Each project keeps its own `dvc.yaml` inside `projects/<name>/`. From the repo
+root, use `-P` (all pipelines) or pass the pipeline file explicitly:
+
+```powershell
+dvc repro -P                             # every pipeline in the repo
+dvc repro projects/<name>/dvc.yaml       # one project
+dvc stage list --all                     # stage status across all pipelines
+dvc dag projects/<name>/dvc.yaml         # pipeline graph
 ```
+
+From inside a project folder the plain forms work as usual:
+
+```powershell
+dvc repro     # stages re-run only when their dependencies changed
+dvc dag
+dvc status
+```
+
+`projects/_template` is excluded through `.dvcignore` because the scaffold has
+no dataset of its own, so it is skipped by `dvc repro -P`.
