@@ -37,6 +37,7 @@ import joblib
 import mlflow
 import mlflow.sklearn
 import numpy as np
+from mlflow.tracking import MlflowClient
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
@@ -57,6 +58,40 @@ def configure_tracking(config: dict) -> str:
         tracking_uri = f"sqlite:///{(REPO_ROOT / 'mlflow.db').as_posix()}"
     mlflow.set_tracking_uri(tracking_uri)
     return tracking_uri
+
+
+def ensure_experiment(experiment_name: str, config: dict) -> str:
+    """Create the MLflow experiment if needed, pinned to a repo-level artifact root.
+
+    MLflow derives a NEW experiment's `artifact_location` from the current
+    working directory, so a project run through DVC would otherwise scatter its
+    model artifacts into `projects/<name>/mlruns/`. Pinning the location here
+    keeps every project's artifacts in the one shared store at the repo root.
+
+    Returns the experiment id.
+    """
+    mlflow_config = config.get("mlflow") or {}
+    artifact_root = mlflow_config.get("artifact_root")
+    if artifact_root:
+        root_path = Path(artifact_root)
+        if not root_path.is_absolute():
+            root_path = PROJECT_ROOT / root_path
+    else:
+        # Default: one artifact folder per experiment, e.g. mlruns/01_diabetes_regression
+        root_path = REPO_ROOT / "mlruns" / experiment_name
+
+    client = MlflowClient()
+    experiment = client.get_experiment_by_name(experiment_name)
+    if experiment is None:
+        experiment_id = client.create_experiment(
+            experiment_name, artifact_location=root_path.as_uri()
+        )
+        print(f"[*] Created experiment '{experiment_name}' -> artifacts in {root_path}")
+    else:
+        experiment_id = experiment.experiment_id
+
+    mlflow.set_experiment(experiment_name)
+    return experiment_id
 
 
 def build_model(model_cfg: dict) -> RandomForestRegressor:
@@ -101,7 +136,7 @@ def train_model(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, floa
     paths_cfg = config.get("paths", {})
 
     tracking_uri = configure_tracking(config)
-    mlflow.set_experiment(experiment_name)
+    ensure_experiment(experiment_name, config)
 
     with mlflow.start_run(run_name=run_name):
         print(

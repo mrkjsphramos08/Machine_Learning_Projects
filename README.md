@@ -77,3 +77,86 @@ dvc dag projects/01_diabetes_regression/dvc.yaml                                
 
 DVC runs each project's stages with the **project folder** as the working
 directory, which is why stage commands are plain `python -m src.data`.
+
+---
+
+## ➕ Starting a new project (including a Kaggle one)
+
+```powershell
+Copy-Item -Recurse projects\_template projects\02_kaggle_<dataset>
+```
+
+1. Edit `projects/02_kaggle_<dataset>/configs/config.yaml` — set `project_name`,
+   `experiment_name` (**must be unique per project**) and `dataset.target_column`.
+2. Get the data. `kagglehub` needs no API token for public datasets:
+   ```powershell
+   python -c "import kagglehub; print(kagglehub.dataset_download('owner/dataset-name'))"
+   ```
+   Copy the file into the project's `data/raw/`, then version it:
+   ```powershell
+   cd projects\02_kaggle_<dataset>
+   dvc add data/raw/<your_file>.csv      # commit the generated .csv.dvc to Git
+   ```
+3. Explore it in `notebooks/01_eda.ipynb` **before** training anything.
+4. `python -m src.data`, `python -m src.train`, `pytest`.
+
+`projects/_template/README.md` has the long-form version of this checklist.
+
+---
+
+## 🔗 Shared services at the repo root (and why)
+
+| Thing | Why it is shared, not per-project |
+| :--- | :--- |
+| **`.venv`** | One environment to maintain. If two projects ever need conflicting versions, that is the signal to split one out into its own repo. |
+| **`mlflow.db`** | Every project's runs land in one UI so you can compare runs **across** datasets. |
+| **`mlruns/<experiment_name>/`** | Model artifacts, one folder per experiment. `src/train.py` pins the tracking store *and* the artifact root to the repo root — MLflow 3.x otherwise derives both from the *current directory* and scatters stray databases and artifact folders into whatever folder you ran from. |
+| **`.dvc/` cache** | Data is stored once and deduplicated, even if two projects use the same dataset. |
+| **`pytest.ini`** | `--import-mode=importlib` lets every project ship its own `tests/test_pipeline.py` without module-name clashes. |
+| **`.agents/` rules + skills** | The standards and the DVC / MLflow / FastAPI / Docker procedures apply to every project automatically. |
+
+`experiment_name` is the only thing that must never be duplicated between
+projects — that is what keeps the shared tracking store readable.
+
+---
+
+## 🧭 The promotion path
+
+A project moves through these stages, and only the last one justifies Docker:
+
+```
+notebooks/  →  src/*.py  →  dvc.yaml stages  →  MLflow Model Registry
+                                                    →  FastAPI  →  Docker
+   exploration    reusable      reproducible        lifecycle     serving   packaging
+                  functions     pipeline            management
+```
+
+`projects/01_diabetes_regression/ROADMAP.md` walks the whole path in four
+milestones (DVC → MLflow registry → FastAPI → Docker). Do those steps **once**,
+on one project. For everything else, stop at `dvc.yaml` + `pytest` and spend the
+rest of your time on data quality, validation splits and the right metric.
+
+---
+
+## 📐 Conventions
+
+Full rules: `.agents/rules/mlops_standards.md`. The essentials:
+
+- Never hardcode hyperparameters, paths, split ratios or seeds — put them in
+  `configs/config.yaml`.
+- Always set `random_state` explicitly and log it.
+- Log **all** runs to MLflow, including bad ones. Three runs you can compare beat
+  one run you remember.
+- Raw and processed data, model binaries and `mlruns/` never go into Git — DVC
+  and MLflow handle them.
+- Every pipeline component keeps a smoke test in `tests/`.
+
+---
+
+## 🧪 Verify the setup works
+
+```powershell
+pytest                                  # from the repo root: all projects
+dvc repro -P                            # both pipeline stages still reproduce
+dvc stage list --all                    # stage status across all pipelines
+```

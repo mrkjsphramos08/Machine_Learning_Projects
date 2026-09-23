@@ -45,7 +45,10 @@ def synthetic_project(tmp_path: Path) -> Path:
         "project_name": "01_diabetes_regression",
         "experiment_name": "pytest_01_diabetes_regression_smoke",
         "run_name": "pytest",
-        "mlflow": {"tracking_uri": f"sqlite:///{(tmp_path / 'mlflow_test.db').as_posix()}"},
+        "mlflow": {
+            "tracking_uri": f"sqlite:///{(tmp_path / 'mlflow_test.db').as_posix()}",
+            "artifact_root": (tmp_path / "mlruns").as_posix(),
+        },
         "paths": {
             "raw_data": (raw_dir / "data.csv").as_posix(),
             "train_data": (tmp_path / "data" / "processed" / "train.parquet").as_posix(),

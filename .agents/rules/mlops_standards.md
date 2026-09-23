@@ -20,7 +20,7 @@ Rules that follow from this:
 
 - **One of each, never per project**: one virtualenv, one DVC repo, one MLflow tracking store. Use a unique `experiment_name` per project instead of separate stores.
 - **Unique experiments**: `experiment_name` in `configs/config.yaml` must be unique per project so a shared `mlflow.db` stays readable.
-- **Pin the tracking URI**: always point MLflow at the repo-level `mlflow.db` (see `configure_tracking()` in `src/train.py`). MLflow 3.x otherwise resolves `sqlite:///mlflow.db` relative to the current directory and silently creates stray databases.
+- **Pin MLflow to the repo root**: `configure_tracking()` points MLflow at the repo-level `mlflow.db`, and `ensure_experiment()` pins each experiment's artifact root to the repo-level `mlruns/`. Both values are otherwise derived from the current working directory, which silently scatters stray databases and artifact folders into project folders.
 - **Resolve paths from the file, not the CWD**: use `src/paths.py` (`PROJECT_ROOT` / `REPO_ROOT` / `resolve()`). Never assume the working directory.
 - **No cross-project imports**: a project imports only from its own `src` package.
 
