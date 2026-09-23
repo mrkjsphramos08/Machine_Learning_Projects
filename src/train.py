@@ -37,7 +37,7 @@ import yaml
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from src.data import prepare_data
+from src.data import load_processed_data
 
 
 def load_config(config_path: str = "configs/train_config.yaml") -> dict:
@@ -64,12 +64,10 @@ def train_model():
             f"[*] Started MLflow run: '{run_name}' under experiment '{experiment_name}'"
         )
 
-        # 4. Prepare data
+        # 4. Load processed data from Parquet files
         test_size = dataset_cfg.get("test_size", 0.2)
         random_state = dataset_cfg.get("random_state", 42)
-        X_train, X_test, y_train, y_test = prepare_data(
-            test_size=test_size, random_state=random_state
-        )
+        X_train, X_test, y_train, y_test = load_processed_data()
 
         # 5. Log Parameters (Inputs)
         mlflow.log_param("test_size", test_size)

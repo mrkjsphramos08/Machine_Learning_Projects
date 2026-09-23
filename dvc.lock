@@ -1,0 +1,45 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m src.data
+    deps:
+    - path: configs/train_config.yaml
+      hash: md5
+      md5: c8fefd83479d559aad06a582b4a9a630
+      size: 232
+    - path: data/raw/data.csv
+      hash: md5
+      md5: bf3703e9cb8cab6bdb417738fb83c13a
+      size: 95580
+    - path: src/data.py
+      hash: md5
+      md5: 6f1f74425d3c52a154a491f72b367266
+      size: 2412
+    outs:
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: 0b4e0d1f75e811dff55bed4253cf4192
+      size: 11334
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 08742a1520bc970e263713e29f161873
+      size: 18770
+  train:
+    cmd: python -m src.train
+    deps:
+    - path: configs/train_config.yaml
+      hash: md5
+      md5: c8fefd83479d559aad06a582b4a9a630
+      size: 232
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: 0b4e0d1f75e811dff55bed4253cf4192
+      size: 11334
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 08742a1520bc970e263713e29f161873
+      size: 18770
+    - path: src/train.py
+      hash: md5
+      md5: 0200961fe6adc5a3f4a2b2e29f008efc
+      size: 4588

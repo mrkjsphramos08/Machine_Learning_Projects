@@ -7,25 +7,63 @@ In MLOps, separating data ingestion and preparation into modular functions ensur
 3. Seamless integration with data versioning tools like DVC later on.
 """
 
+import os
 import pandas as pd
-from sklearn.datasets import load_diabetes
+import yaml
 from sklearn.model_selection import train_test_split
 
 
-def load_raw_data() -> tuple[pd.DataFrame, pd.Series]:
-    """Loads the raw dataset. Using scikit-learn's built-in diabetes dataset."""
-    diabetes = load_diabetes(as_frame=True)
-    X = diabetes.data
-    y = diabetes.target
-    return X, y
+def load_config(config_path: str = "configs/train_config.yaml") -> dict:
+    """Load configuration from a YAML file."""
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
 
-def prepare_data(
-    test_size: float = 0.2, random_state: int = 42
-) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """Splits raw data into train and test sets."""
-    X, y = load_raw_data()
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state
+def prepare_and_save_data(
+    raw_data_path: str = "data/raw/data.csv",
+    processed_dir: str = "data/processed",
+    config_path: str = "configs/train_config.yaml",
+) -> None:
+    """Reads raw CSV, splits into train/test sets, and saves as Parquet files."""
+    config = load_config(config_path)
+    dataset_cfg = config.get("dataset", {})
+    test_size = dataset_cfg.get("test_size", 0.2)
+    random_state = dataset_cfg.get("random_state", 42)
+
+    print(f"[*] Loading raw dataset from: {raw_data_path}")
+    df = pd.read_csv(raw_data_path)
+
+    train_df, test_df = train_test_split(
+        df, test_size=test_size, random_state=random_state
     )
+
+    os.makedirs(processed_dir, exist_ok=True)
+    train_path = os.path.join(processed_dir, "train.parquet")
+    test_path = os.path.join(processed_dir, "test.parquet")
+
+    train_df.to_parquet(train_path, index=False)
+    test_df.to_parquet(test_path, index=False)
+
+    print(f"[+] Successfully generated processed datasets:")
+    print(f"    Train: {train_path} ({len(train_df)} rows)")
+    print(f"    Test:  {test_path} ({len(test_df)} rows)")
+
+
+def load_processed_data(
+    processed_dir: str = "data/processed",
+    target_column: str = "target",
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+    """Loads processed parquet files into feature and target splits."""
+    train_df = pd.read_parquet(os.path.join(processed_dir, "train.parquet"))
+    test_df = pd.read_parquet(os.path.join(processed_dir, "test.parquet"))
+
+    X_train = train_df.drop(columns=[target_column])
+    y_train = train_df[target_column]
+    X_test = test_df.drop(columns=[target_column])
+    y_test = test_df[target_column]
+
     return X_train, X_test, y_train, y_test
+
+
+if __name__ == "__main__":
+    prepare_and_save_data()
