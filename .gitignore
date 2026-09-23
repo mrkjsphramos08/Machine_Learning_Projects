@@ -14,6 +14,10 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Linter and type-checker caches (ruff self-ignores, but be explicit)
+.ruff_cache/
+.pyrefly_cache/
+
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
