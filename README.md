@@ -32,7 +32,9 @@ MLOps/
 │   │   ├── conftest.py             # makes `import src` work under pytest
 │   │   ├── dvc.yaml                # prepare → train pipeline stages
 │   │   └── README.md               # step-by-step new-project guide
-│   └── 01_diabetes_regression/     # the reference project (+ ROADMAP.md, 4 milestones)
+│   ├── 01_diabetes_regression/     # continuous regression reference + FastAPI + Docker
+│   ├── 02_california_housing_regression/ # geospatial regression, DVC repro, residuals & CV
+│   └── 03_titanic_classification/  # binary classification, title engineering, tuning & champion gate
 ├── mlflow.db                       # shared SQLite tracking store + Model Registry
 ├── mlruns/                         # MLflow artifact store (gitignored)
 ├── pytest.ini                      # test configuration for the whole repo
@@ -40,6 +42,15 @@ MLOps/
 ├── requirements-dev.txt            # notebooks, plotting, Kaggle downloads
 └── README.md
 ```
+
+### 📂 Active Projects in this Lab
+
+| Project | Task | Dataset | Primary Metric | Champion / Top Model | Stage & Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| [`01_diabetes_regression`](file:///projects/01_diabetes_regression) | Regression | Scikit-learn Diabetes (442 rows) | RMSE: 53.64, R²: 0.40 | `RandomForestRegressor` | Graduated (FastAPI REST API + Docker) |
+| [`02_california_housing_regression`](file:///projects/02_california_housing_regression) | Regression | CA Housing Census (20,640 rows) | RMSE: 0.4517, R²: 0.8443 | `HistGradientBoostingRegressor` | Full Diagnostics (DVC pipeline, CV, residuals) |
+| [`03_titanic_classification`](file:///projects/03_titanic_classification) | Binary Classification | Kaggle Titanic (891 rows) | ROC-AUC: 0.8593, Acc: 80.45% | `HistGradientBoostingClassifier` | MLflow Model Registry Champion (`@champion`) |
+
 
 ---
 

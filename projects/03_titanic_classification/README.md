@@ -1,54 +1,112 @@
-# Project 03: Titanic Passenger Survival Classification
+# Project 03 — Titanic Passenger Survival Classification
 
-A binary classification project predicting whether a passenger survived the Titanic sinking (`1` = Survived, `0` = Died).
+A production-grade binary classification project predicting passenger survival on the Titanic (`1` = Survived, `0` = Died), using the **Kaggle Titanic dataset**.
 
----
-
-## 1. Problem & Dataset Overview
-- **Dataset**: Kaggle Titanic Dataset (`data/raw/titanic.csv`), tracked via DVC.
-- **Rows & Columns**: 891 rows × 12 features.
-- **Target**: `Survived` (Binary: `0` or `1`).
-- **Core Challenges**:
-  - Missing values in `Age` (~20%), `Cabin` (~77%), and `Embarked` (2 rows).
-  - Categorical feature encoding (`Sex`, `Embarked`, `Pclass`).
-  - Text feature extraction (`Name` titles like Mr., Mrs., Miss, Master).
-  - Evaluation trade-offs: Accuracy vs. Precision, Recall, F1, and ROC-AUC.
+| Property | Value |
+| :--- | :--- |
+| Source | Kaggle Titanic Dataset (`data/raw/titanic.csv`, tracked by DVC, SHA256 in `DATASET.md`) |
+| Rows | 891 (Train: 712, Test: 179 via Stratified Holdout) |
+| Features | 11 (Pclass, Sex, Age, SibSp, Parch, Fare, Embarked, has_cabin, family_size, is_alone, Title) |
+| Target | `Survived` — Binary: `0` = Died (61.6%), `1` = Survived (38.4%) |
+| Task | Binary Classification |
+| Primary Metric | **ROC-AUC** (North Star: threshold-independent discrimination), F1-Score, Recall, Precision, Accuracy |
+| Active Champion | `HistGradientBoostingClassifier` (**ROC-AUC: 0.8593**, Accuracy: **80.45%**, Precision: **79.31%**) |
 
 ---
 
-## 2. Pipeline Architecture
+## 1. Problem & MLOps Highlights
+
+This project demonstrates the end-to-end discipline required for real-world binary classification pipelines:
+
+1. **The Accuracy Trap**:
+   - The naive majority-class baseline (predicting everyone dies) achieves **61.6% accuracy** while offering zero predictive utility.
+   - We established **`ROC-AUC`** as the primary North Star metric to evaluate discrimination power across all decision thresholds, tracking **Precision**, **Recall**, and **F1-Score** alongside it.
+
+2. **Stratified Splitting**:
+   - Using `stratify=df[target_column]` preserves the exact `61.6% / 38.4%` class balance in both `train.parquet` (712 rows) and `test.parquet` (179 rows), preventing evaluation drift.
+
+3. **Domain-Specific Feature Engineering** ([`src/data.py`](file:///c:/Users/mjram/Downloads/MLOps/projects/03_titanic_classification/src/data.py)):
+   - **Social Title Extraction**: Extracted titles (`Mr`, `Mrs`, `Miss`, `Master`, `Rare`) from `Name`. Young boys with the title **`Master`** exhibited a **57.5% survival rate** compared to **15.7%** for adult men (`Mr`), breaking the simplistic gender-only heuristic.
+   - **Context-Aware Imputation**: Rather than imputing missing ages with the global median (28.0 years), missing values were imputed using each passenger's **Title-group median** (e.g., imputing missing `Master` boys at age **3.5**).
+   - **Structural Indicators**: `has_cabin` (upper deck proxy), `family_size` (`SibSp + Parch + 1`), and `is_alone`.
+
+---
+
+## 2. Benchmark Results: Multi-Model Tournament
+
+We logged and benchmarked 5 distinct algorithm families in MLflow on the identical stratified holdout:
+
+| Run Name | Model Family | Accuracy | Precision | Recall | F1-Score | **ROC-AUC** | Role & Notes |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
+| `baseline_rf` | Random Forest (No Titles) | 80.45% | 79.31% | 66.67% | 72.44% | 0.8391 | Initial benchmark baseline |
+| `rf_with_title_features` | Random Forest (+ Title) | 80.45% | 75.76% | 72.46% | 74.07% | 0.8488 | Title features boost (+5.8% Recall) |
+| `challenger_mlp` | Multi-Layer Perceptron (Neural Net) | 77.09% | 74.14% | 62.32% | 67.72% | 0.8423 | Scaled challenger |
+| `challenger_knn` | K-Nearest Neighbors ($k=7$) | 79.33% | 73.53% | 72.46% | 72.99% | 0.8532 | Distance-based challenger |
+| `challenger_svm_rbf` | Support Vector Machine (RBF) | **81.56%** | 79.03% | 71.01% | 74.81% | 0.8511 | Highest holdout accuracy |
+| `challenger_logistic_reg` | Logistic Regression (L2) | 80.45% | 75.76% | **72.46%** | **74.07%** | 0.8581 | Highest F1 at default 0.5 threshold |
+| **`champion_hist_grad`** | **HistGradientBoosting** | **80.45%** | **79.31%** | 66.67% | 72.44% | **`0.8593`** | 🏆 **ACTIVE CHAMPION (`@champion`)** |
+
+---
+
+## 3. Automated Tuning & "The Winner's Curse"
+
+- [`src/tune.py`](file:///c:/Users/mjram/Downloads/MLOps/projects/03_titanic_classification/src/tune.py) executed `RandomizedSearchCV` across 35 configurations × 5 stratified folds (175 fits) optimizing ROC-AUC.
+- The search discovered a candidate configuration with **`0.8915` Cross-Validation ROC-AUC**.
+- **The MLOps Test**: When evaluated on the frozen, held-out test set, this candidate scored **`0.8204`**, succumbing to the Winner's Curse (overfitting to CV validation splits).
+- **MLflow Champion Gate**: The automated promotion gate detected `0.8204 < 0.8593` and rejected the candidate, successfully protecting Version 5 (`HistGradientBoostingClassifier`, max_depth=4, 100 trees) as the reigning `@champion` in the MLflow Model Registry (`TitanicClassifier@champion`).
+
+---
+
+## 4. Directory Layout
+
 ```
-data/raw/titanic.csv (DVC Tracked)
-       │
-       ▼
-src/data.py (Clean, Impute, Encode, Split)
-       │
-       ├── data/processed/train.parquet
-       └── data/processed/test.parquet
-       │
-       ▼
-src/train.py (Fit Classifier, Log to MLflow, Evaluate)
-       │
-       ▼
-models/model.pkl (Artifact)
+03_titanic_classification/
+├── configs/config.yaml            # ALL tunables: paths, split, hyperparameters
+├── data/raw/titanic.csv(.dvc)     # immutable input, versioned by DVC
+├── data/raw/DATASET.md            # data provenance, SHA256 checksum, licensing
+├── data/processed/*.parquet       # generated by the `prepare` stage
+├── models/model.pkl               # generated by the `train` stage
+├── notebooks/01_eda.ipynb         # EDA and feature exploration workbench
+├── src/paths.py                   # path resolution (never depends on the CWD)
+├── src/data.py                    # load → title extract → impute → encode → split
+├── src/train.py                   # fit → evaluate → MLflow → Champion Gate
+├── src/tune.py                    # automated RandomizedSearchCV hyperparameter search
+├── tests/test_pipeline.py         # hermetic smoke + data-validation tests
+├── conftest.py                    # sys.modules isolation under pytest
+├── dvc.yaml                       # reproducible pipeline DAG
+└── dvc.lock                       # exact data and code hash freeze
 ```
 
 ---
 
-## 3. Quickstart
+## 5. Commands
 
-### Step 1: Run Preprocessing
+Run from **this folder**:
+
 ```powershell
 cd projects\03_titanic_classification
+
+# 1. Feature Engineering & Preprocessing (generates data/processed/*.parquet)
 python -m src.data
-```
 
-### Step 2: Train Model
-```powershell
+# 2. Train Champion Model & Log to MLflow Registry
 python -m src.train
+
+# 3. Optional: Run Automated Hyperparameter Tuning
+python -m src.tune
+
+# 4. Hermetic Smoke & Data Validation Tests
+pytest
 ```
 
-### Step 3: Run Tests
+Run from the **repo root**:
+
 ```powershell
-pytest
+.\.venv\Scripts\Activate.ps1
+
+# Reproduce pipeline via DVC
+dvc repro projects/03_titanic_classification/dvc.yaml
+
+# Launch shared MLflow UI
+mlflow ui --port 5000
 ```
