@@ -21,7 +21,6 @@ def client():
         yield test_client
 
 
-
 def test_health_reports_healthy(client: TestClient):
     """GET /health must return 200 and report that the champion model is loaded."""
     response = client.get("/health")
