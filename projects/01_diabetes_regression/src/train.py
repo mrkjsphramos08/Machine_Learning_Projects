@@ -37,8 +37,10 @@ import joblib
 import mlflow
 import mlflow.sklearn
 import numpy as np
+from mlflow.models import infer_signature
 from mlflow.tracking import MlflowClient
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
+from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from src.data import load_config, load_processed_data
@@ -94,18 +96,31 @@ def ensure_experiment(experiment_name: str, config: dict) -> str:
     return experiment_id
 
 
-def build_model(model_cfg: dict) -> RandomForestRegressor:
+def build_model(model_cfg: dict):
     """Instantiate the estimator described by the config's `model` section."""
     model_type = model_cfg.get("type", "RandomForestRegressor")
-    if model_type != "RandomForestRegressor":
-        raise ValueError(
-            f"Unsupported model type '{model_type}'. "
-            "Add the estimator here when you try a new algorithm."
+    if model_type == "RandomForestRegressor":
+        return RandomForestRegressor(
+            n_estimators=model_cfg.get("n_estimators", 100),
+            max_depth=model_cfg.get("max_depth", 6),
+            min_samples_leaf=model_cfg.get("min_samples_leaf", 1),
+            random_state=model_cfg.get("random_state", 42),
         )
-    return RandomForestRegressor(
-        n_estimators=model_cfg.get("n_estimators", 100),
-        max_depth=model_cfg.get("max_depth", 6),
-        random_state=model_cfg.get("random_state", 42),
+    elif model_type == "Ridge":
+        return Ridge(
+            alpha=model_cfg.get("alpha", 1.0),
+            random_state=model_cfg.get("random_state", 42),
+        )
+    elif model_type == "HistGradientBoostingRegressor":
+        return HistGradientBoostingRegressor(
+            max_iter=model_cfg.get("max_iter", 100),
+            learning_rate=model_cfg.get("learning_rate", 0.1),
+            max_depth=model_cfg.get("max_depth", 6),
+            random_state=model_cfg.get("random_state", 42),
+        )
+    raise ValueError(
+        f"Unsupported model type '{model_type}'. "
+        "Supported types: 'RandomForestRegressor', 'Ridge', 'HistGradientBoostingRegressor'."
     )
 
 
@@ -173,8 +188,16 @@ def train_model(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, floa
         model_path = ensure_parent(resolve(paths_cfg.get("model", "models/model.pkl")))
         joblib.dump(model, model_path)
 
-        mlflow.sklearn.log_model(
-            sk_model=model, name="model", registered_model_name=None
+        signature = infer_signature(X_train, model.predict(X_train.iloc[:5]))
+        input_example = X_train.iloc[:5]
+        registered_name = model_cfg.get("registered_name")
+
+        model_info = mlflow.sklearn.log_model(
+            sk_model=model,
+            name="model",
+            registered_model_name=registered_name,
+            signature=signature,
+            input_example=input_example,
         )
 
         print("[+] Training completed successfully!")
@@ -182,7 +205,44 @@ def train_model(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, floa
         print(f"    MAE:  {metrics['mae']:.4f}")
         print(f"    R2:   {metrics['r2']:.4f}")
         print(f"    Model written to: {model_path}")
-        print("[+] Metrics + artifact logged to MLflow.\n")
+        print("[+] Metrics + artifact logged to MLflow.")
+
+        # Champion / Challenger Gate
+        if registered_name and model_info.registered_model_version is not None:
+            client = MlflowClient()
+            new_version = model_info.registered_model_version
+
+            try:
+                champion_mv = client.get_model_version_by_alias(
+                    registered_name, "champion"
+                )
+                champion_run = client.get_run(champion_mv.run_id)
+                champion_rmse = champion_run.data.metrics.get("rmse", float("inf"))
+
+                if metrics["rmse"] < champion_rmse:
+                    client.set_registered_model_alias(
+                        registered_name, "champion", new_version
+                    )
+                    client.set_registered_model_alias(
+                        registered_name, "challenger", champion_mv.version
+                    )
+                    print(
+                        f"[+] [PROMOTION] New champion! Version {new_version} (RMSE: {metrics['rmse']:.4f}) beats v{champion_mv.version} (RMSE: {champion_rmse:.4f})"
+                    )
+                else:
+                    client.set_registered_model_alias(
+                        registered_name, "challenger", new_version
+                    )
+                    print(
+                        f"[*] [CHALLENGER] Version {new_version} (RMSE: {metrics['rmse']:.4f}) did not beat champion v{champion_mv.version} (RMSE: {champion_rmse:.4f}). Tagged as @challenger."
+                    )
+            except Exception:
+                client.set_registered_model_alias(
+                    registered_name, "champion", new_version
+                )
+                print(
+                    f"[+] [INITIAL CHAMPION] Registered version {new_version} as @champion (RMSE: {metrics['rmse']:.4f})\n"
+                )
 
     return metrics
 

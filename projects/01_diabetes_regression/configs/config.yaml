@@ -6,7 +6,7 @@
 # =============================================================================
 project_name: "01_diabetes_regression"
 experiment_name: "01_diabetes_regression"
-run_name: "baseline_rf"
+run_name: "hgb_challenger"
 
 # Paths are relative to the PROJECT folder (not the repo root, not the CWD).
 paths:
@@ -21,7 +21,13 @@ dataset:
   random_state: 42
 
 model:
-  type: "RandomForestRegressor"
-  n_estimators: 100
-  max_depth: 6
+  type: "HistGradientBoostingRegressor"
+  registered_name: "DiabetesRegressor"
+  max_iter: 50
+  max_depth: 3
+  learning_rate: 0.05
+  min_samples_leaf: 15
   random_state: 42
+
+serving:
+  alias: "champion"
