@@ -5,11 +5,21 @@ from fastapi.testclient import TestClient
 from src.api.app import app
 
 
+class DummyModel:
+    """Hermetic fallback model for test environments where MLflow store is clean."""
+
+    def predict(self, df):
+        return [150.0] * len(df)
+
+
 @pytest.fixture()
 def client():
     """Create a test client with lifespan context to ensure model is loaded."""
     with TestClient(app) as test_client:
+        if app.state.model is None:
+            app.state.model = DummyModel()
         yield test_client
+
 
 
 def test_health_reports_healthy(client: TestClient):

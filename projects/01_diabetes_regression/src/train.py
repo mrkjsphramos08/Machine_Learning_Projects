@@ -198,6 +198,7 @@ def train_model(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, floa
             registered_model_name=registered_name,
             signature=signature,
             input_example=input_example,
+            serialization_format="cloudpickle",
         )
 
         print("[+] Training completed successfully!")

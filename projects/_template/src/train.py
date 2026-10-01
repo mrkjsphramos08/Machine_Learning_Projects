@@ -174,7 +174,10 @@ def train_model(config_path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, floa
         joblib.dump(model, model_path)
 
         mlflow.sklearn.log_model(
-            sk_model=model, name="model", registered_model_name=None
+            sk_model=model,
+            name="model",
+            registered_model_name=None,
+            serialization_format="cloudpickle",
         )
 
         print("[+] Training completed successfully!")
