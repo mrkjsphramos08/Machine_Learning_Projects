@@ -54,3 +54,7 @@ projects/*/reports/
 # OS generated files
 Thumbs.db
 .DS_Store
+
+# Local agent session handoffs
+docs/HANDOFF.md
+

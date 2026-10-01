@@ -5,10 +5,12 @@ description: Setting up continuous integration for this ML repo with GitHub Acti
 
 # ML CI/CD Skill
 
-Use this when you have a git remote and want every push checked without thinking
-about it. **Precondition:** this repo currently has no git remote and no DVC
-remote (`git remote -v` and `dvc remote list` are both empty) — see §2 before
-writing any workflow.
+Use this to understand or extend our continuous integration setup. 
+
+**Active Setup:**
+- Remote: `https://github.com/mrkjsphramos08/Machine_Learning_Projects.git` (`origin`)
+- Primary branch: `main`
+- Workflow: [`.github/workflows/ci.yml`](file:///c:/Users/mjram/Downloads/MLOps/.github/workflows/ci.yml) running Ruff lint/format check, 27 Pytest tests across all 4 projects, and Docker image build verification.
 
 ---
 
