@@ -1,0 +1,62 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m src.data
+    deps:
+    - path: configs/config.yaml
+      hash: md5
+      md5: 9cf656cd3e48201ca41d1b9ff1aac0b3
+      size: 866
+    - path: data/raw/titanic.csv
+      hash: md5
+      md5: 61fdd54abdbf6a85b778e937122e1194
+      size: 60302
+    - path: src/data.py
+      hash: md5
+      md5: d822fa51a17a57457ea2e428c87fda6e
+      size: 5468
+    - path: src/paths.py
+      hash: md5
+      md5: 92b0322c46ae669fa031c717f8fab06c
+      size: 1097
+    outs:
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: d2951cc91056ac9ae9038005b4c26172
+      size: 9050
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: ae504f095809acdd17bb3c7e6d9b15dc
+      size: 12293
+  train:
+    cmd: python -m src.train
+    deps:
+    - path: configs/config.yaml
+      hash: md5
+      md5: 9cf656cd3e48201ca41d1b9ff1aac0b3
+      size: 866
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: d2951cc91056ac9ae9038005b4c26172
+      size: 9050
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: ae504f095809acdd17bb3c7e6d9b15dc
+      size: 12293
+    - path: src/data.py
+      hash: md5
+      md5: d822fa51a17a57457ea2e428c87fda6e
+      size: 5468
+    - path: src/paths.py
+      hash: md5
+      md5: 92b0322c46ae669fa031c717f8fab06c
+      size: 1097
+    - path: src/train.py
+      hash: md5
+      md5: 2efe04c2c7fb316f1dfd8f96b69a8fc2
+      size: 13005
+    outs:
+    - path: models/model.pkl
+      hash: md5
+      md5: efb0340235b8f96531038582730e9984
+      size: 126496

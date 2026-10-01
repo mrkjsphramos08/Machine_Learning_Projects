@@ -26,13 +26,8 @@ for mod in list(sys.modules):
 
 @pytest.fixture(autouse=True)
 def ensure_project_src():
-    """Ensure this project's src is active during test execution."""
+    """Ensure this project's src is always active during test execution."""
     if str(PROJECT_ROOT) in sys.path:
         sys.path.remove(str(PROJECT_ROOT))
     sys.path.insert(0, str(PROJECT_ROOT))
-    for mod in list(sys.modules):
-        if mod == "src" or mod.startswith("src."):
-            file = getattr(sys.modules[mod], "__file__", "")
-            if file and not file.startswith(str(PROJECT_ROOT)):
-                del sys.modules[mod]
     yield

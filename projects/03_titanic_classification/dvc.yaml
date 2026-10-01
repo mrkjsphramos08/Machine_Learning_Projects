@@ -1,0 +1,35 @@
+# =============================================================================
+# DVC pipeline for THIS project.
+#
+# This file lives inside the project folder, so every path below is relative to
+# the project folder and DVC executes the commands with the project folder as
+# the working directory. That is why `python -m src.data` resolves.
+#
+# Commands (from the repo root):
+#   dvc repro -P                                  # every pipeline in the repo
+#   dvc repro projects/<name>/dvc.yaml             # just this project
+#   dvc stage list                                 # show cached stage status
+# =============================================================================
+stages:
+  prepare:
+    cmd: python -m src.data
+    deps:
+      - src/data.py
+      - src/paths.py
+      - configs/config.yaml
+      - data/raw/titanic.csv
+    outs:
+      - data/processed/train.parquet
+      - data/processed/test.parquet
+
+  train:
+    cmd: python -m src.train
+    deps:
+      - src/train.py
+      - src/data.py
+      - src/paths.py
+      - configs/config.yaml
+      - data/processed/train.parquet
+      - data/processed/test.parquet
+    outs:
+      - models/model.pkl

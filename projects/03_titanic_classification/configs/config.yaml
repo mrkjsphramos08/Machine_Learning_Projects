@@ -1,0 +1,28 @@
+# =============================================================================
+# Project Configuration: 03_titanic_classification
+# Rule: Never hardcode hyperparameters, paths, split ratios, or seeds in Python.
+# =============================================================================
+project_name: "03_titanic_classification"
+
+# MLflow: experiment_name must be UNIQUE per project in the shared repo mlflow.db
+experiment_name: "03_titanic_classification"
+run_name: "champion_hist_grad"
+registered_model_name: "TitanicClassifier"
+
+# Paths are relative to this project folder
+paths:
+  raw_data: "data/raw/titanic.csv"
+
+dataset:
+  target_column: "Survived"
+  test_size: 0.2
+  random_state: 42
+
+model:
+  type: "HistGradientBoostingClassifier"
+  max_iter: 100
+  learning_rate: 0.05
+  max_depth: 4
+  min_samples_leaf: 20
+  l2_regularization: 0.0
+  random_state: 42

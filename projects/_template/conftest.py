@@ -10,7 +10,29 @@ from.
 import sys
 from pathlib import Path
 
+import pytest
+
 PROJECT_ROOT = Path(__file__).resolve().parent
 
-if str(PROJECT_ROOT) not in sys.path:
+if str(PROJECT_ROOT) in sys.path:
+    sys.path.remove(str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# Evict any 'src' modules cached from another project in the monorepo
+for mod in list(sys.modules):
+    if mod == "src" or mod.startswith("src."):
+        del sys.modules[mod]
+
+
+@pytest.fixture(autouse=True)
+def ensure_project_src():
+    """Ensure this project's src is active during test execution."""
+    if str(PROJECT_ROOT) in sys.path:
+        sys.path.remove(str(PROJECT_ROOT))
     sys.path.insert(0, str(PROJECT_ROOT))
+    for mod in list(sys.modules):
+        if mod == "src" or mod.startswith("src."):
+            file = getattr(sys.modules[mod], "__file__", "")
+            if file and not file.startswith(str(PROJECT_ROOT)):
+                del sys.modules[mod]
+    yield
