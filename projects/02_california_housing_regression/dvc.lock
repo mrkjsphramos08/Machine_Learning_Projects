@@ -1,0 +1,62 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m src.data
+    deps:
+    - path: configs/config.yaml
+      hash: md5
+      md5: 11da2d24546d292f7eb02c4044ec65c7
+      size: 1091
+    - path: data/raw/california_housing.csv
+      hash: md5
+      md5: fa9fe4cf24f70b69ac65fb33062ddf34
+      size: 1915795
+    - path: src/data.py
+      hash: md5
+      md5: 53c778c2e34fc49e03c10923d9ba2ca4
+      size: 4463
+    - path: src/paths.py
+      hash: md5
+      md5: 92b0322c46ae669fa031c717f8fab06c
+      size: 1097
+    outs:
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: f182b648c3393d0cfd0360e9c0974ba4
+      size: 273469
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 256c9cccb848876e00c6cebc112cd501
+      size: 984790
+  train:
+    cmd: python -m src.train
+    deps:
+    - path: configs/config.yaml
+      hash: md5
+      md5: 11da2d24546d292f7eb02c4044ec65c7
+      size: 1091
+    - path: data/processed/test.parquet
+      hash: md5
+      md5: f182b648c3393d0cfd0360e9c0974ba4
+      size: 273469
+    - path: data/processed/train.parquet
+      hash: md5
+      md5: 256c9cccb848876e00c6cebc112cd501
+      size: 984790
+    - path: src/data.py
+      hash: md5
+      md5: 53c778c2e34fc49e03c10923d9ba2ca4
+      size: 4463
+    - path: src/paths.py
+      hash: md5
+      md5: 92b0322c46ae669fa031c717f8fab06c
+      size: 1097
+    - path: src/train.py
+      hash: md5
+      md5: 292af7a31990c2419a959544f42335d0
+      size: 8016
+    outs:
+    - path: models/model.pkl
+      hash: md5
+      md5: cc5c24c36bb411c11d943da736b16715
+      size: 687368

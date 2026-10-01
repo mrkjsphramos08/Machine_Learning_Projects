@@ -1,0 +1,32 @@
+# =============================================================================
+# Project configuration for 02_california_housing_regression
+#
+# Rule (.agents/rules/mlops_standards.md §1): never hardcode hyperparameters,
+# dataset paths, split ratios or seeds in Python. They belong here.
+# =============================================================================
+project_name: "02_california_housing_regression"
+
+# MLflow: experiment_name must be UNIQUE per project so runs stay separated
+# inside the shared repo-level mlflow.db.
+experiment_name: "02_california_housing_regression"
+run_name: "hist_gradient_boosting"
+
+# Paths are relative to the PROJECT folder (not the repo root, not the CWD).
+paths:
+  raw_data: "data/raw/california_housing.csv"
+  train_data: "data/processed/train.parquet"
+  test_data: "data/processed/test.parquet"
+  model: "models/model.pkl"
+
+dataset:
+  target_column: "MedHouseVal"
+  test_size: 0.2
+  random_state: 42
+
+model:
+  type: "HistGradientBoostingRegressor"
+  max_iter: 200
+  learning_rate: 0.1
+  max_depth: 8
+  min_samples_leaf: 20
+  random_state: 42

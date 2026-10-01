@@ -35,6 +35,7 @@ mlruns/
 projects/*/data/raw/*
 !projects/*/data/raw/.gitkeep
 !projects/*/data/raw/*.dvc
+!projects/*/data/raw/*.md
 
 # Processed intermediates produced by the `prepare` pipeline stage
 projects/*/data/processed/*
